@@ -430,11 +430,14 @@ FIN_SI`);
 
   // Set default project starter code
   useEffect(() => {
-    const projectStep = pathSteps.find(s => s.type === "phase_project");
+    const projectStep = pathSteps.find(s => s.type === "phase_project" && s.phaseId === selectedPhaseId);
     if (projectStep?.projectTemplate) {
       setProjectCode(projectStep.projectTemplate.starterCode);
+      setProjectLogs([]);
+      setProjectSuccess(false);
+      setProjectError(null);
     }
-  }, [pathSteps]);
+  }, [pathSteps, selectedPhaseId]);
 
   // Text Sizes utilities for elegant sizing multiplier
   const getFontSizeClass = (type: "title" | "subtitle" | "body" | "code") => {
@@ -551,6 +554,10 @@ FIN_SI`);
       }
     } else if (step.type === "phase_project") {
       setActiveTab("taller");
+      // Setup phase id for project reference to ensure correctly loaded
+      if (step.phaseId) {
+        setSelectedPhaseId(step.phaseId);
+      }
       // Find project element to show
       const element = document.getElementById("project-test-panel");
       if (element) {
@@ -1749,8 +1756,7 @@ FIN_SI`);
               <div className="p-3.5 bg-slate-900/40 rounded-xl border border-slate-800/60">
                 <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-0.5">Estación Actual de Enfoque</div>
                 <div className="text-xs font-semibold text-slate-200">
-                  {selectedPhaseId === "phase_1" ? "Fase 1: Pensar en Lógica" :
-                   selectedPhaseId === "phase_2" ? "Fase 2: Python Real" : "Fase 3: Estructuras y Datos"}
+                  {curriculum.find(p => p.id === selectedPhaseId)?.title || "Estación de Estudio"}
                 </div>
               </div>
 
@@ -1758,12 +1764,12 @@ FIN_SI`);
                 <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Insignias Logradas</div>
                 <div className="flex flex-wrap gap-1.5">
                   {completedStepIds.includes("step_phase1_eval") && (
-                    <span className="px-2 py-1 bg-amber-500/10 text-[9px] font-extrabold text-amber-400 rounded-md border border-amber-500/20 flex items-center gap-1 cursor-help" title="Concedida al aprobar el examen de lógica">
+                    <span className="px-2 py-1 bg-amber-500/10 text-[9px] font-extrabold text-amber-400 rounded-md border border-amber-500/20 flex items-center gap-1 cursor-help" title="Concedida al aprobar el examen de lógica de la Fase 1">
                       🏆 Lógica de Oro
                     </span>
                   )}
                   {completedStepIds.includes("step_phase2_project") && (
-                    <span className="px-2 py-1 bg-amber-500/10 text-[9px] font-extrabold text-amber-400 rounded-md border border-amber-500/20 flex items-center gap-1 cursor-help" title="Concedida al resolver satisfactoriamente el Reto de Jubilación">
+                    <span className="px-2 py-1 bg-amber-500/10 text-[9px] font-extrabold text-amber-400 rounded-md border border-amber-500/20 flex items-center gap-1 cursor-help" title="Concedida al resolver satisfactoriamente el Reto de la Calculadora Básica Interactiva">
                       💻 Placa Python
                     </span>
                   )}
@@ -1795,8 +1801,11 @@ FIN_SI`);
               id="tab-btn-lesson"
               onClick={() => {
                 setActiveTab("modulo");
-                setSelectedPhaseId("phase_1");
-                setSelectedLessonIdx(0);
+                // Preserve the currently selected phase and lesson index so user does not lose their navigation progress
+                if (!selectedPhaseId) {
+                  setSelectedPhaseId("phase_1");
+                  setSelectedLessonIdx(0);
+                }
               }}
               className={`flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap lg:w-full font-display border border-transparent ${activeTab === "modulo" ? "bg-amber-500 text-slate-950 shadow-md font-extrabold" : "text-slate-300 hover:bg-slate-900/80 hover:text-white"}`}
             >
@@ -1857,6 +1866,105 @@ FIN_SI`);
 
         {/* PANEL CON CONTENEDOR DE CONTENIDO (Col span 9) */}
         <main className="lg:col-span-9 space-y-6 flex flex-col" id="main-content-column">
+          
+          {/* Universal Phase Navigation Bar (Visible in standard student views) */}
+          {activeTab !== "admin" && (
+            <div className="glass-card rounded-3xl p-5 border border-slate-850 bg-slate-900/10 space-y-3.5 animate-fadeIn" id="universal-phase-navigator">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Brain className="w-5 h-5 text-amber-500" />
+                  <span className="text-xs font-black text-slate-350 uppercase tracking-widest font-display">Navegación Interactiva de Fases</span>
+                </div>
+                <p className="text-[10px] text-slate-500 font-mono">
+                  Haz clic en cualquier fase para explorar sus capítulos y talleres interactivos
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {curriculum.map((phase) => {
+                  const isSelected = selectedPhaseId === phase.id;
+                  
+                  // Phase status logic
+                  const isP1 = phase.id === "phase_1";
+                  const isP2 = phase.id === "phase_2";
+
+                  const isComp = isP1 
+                    ? completedStepIds.includes("step_phase1_eval") 
+                    : isP2 
+                      ? completedStepIds.includes("step_phase2_project") 
+                      : completedStepIds.includes("step_phase3_project");
+
+                  const isUnl = isP1 
+                    ? true 
+                    : isP2 
+                      ? completedStepIds.includes("step_phase1_eval") || isAdminMode
+                      : completedStepIds.includes("step_phase2_project") || isAdminMode;
+
+                  // Counts
+                  const lessonCount = phase.lessons.length;
+
+                  return (
+                    <button
+                      key={phase.id}
+                      id={`nav-phase-card-${phase.id}`}
+                      onClick={() => {
+                        setSelectedPhaseId(phase.id);
+                        setSelectedLessonIdx(0);
+                        // If they are on Camino or Ayuda, let's take them directly to the active lesson of that phase
+                        if (activeTab === "camino" || activeTab === "ayuda") {
+                          setActiveTab("modulo");
+                        }
+                      }}
+                      className={`relative text-left p-4 rounded-2xl border transition-all duration-300 flex flex-col justify-between h-28 select-none group ${
+                        isSelected
+                          ? "bg-slate-900/80 border-amber-500/60 shadow-[0_0_15px_rgba(245,158,11,0.1)] ring-1 ring-amber-500/20"
+                          : "bg-slate-950/50 border-slate-900/85 hover:border-slate-800 hover:bg-slate-900/20"
+                      }`}
+                    >
+                      {/* Top Row Title and badge */}
+                      <div className="w-full space-y-1">
+                        <div className="flex items-center justify-between w-full gap-1">
+                          <span className={`text-[9px] font-black uppercase tracking-wider ${isSelected ? "text-amber-500" : "text-slate-400"}`}>
+                            {isP1 ? "FASE 1" : isP2 ? "FASE 2" : "FASE 3"}
+                          </span>
+                          
+                          {/* Mini badges */}
+                          {isComp ? (
+                            <span className="flex items-center gap-0.5 text-[9px] font-bold text-emerald-400 bg-emerald-500/5 px-2 py-0.5 rounded-full border border-emerald-500/15">
+                              <Check className="w-2.5 h-2.5" /> Listado
+                            </span>
+                          ) : isUnl ? (
+                            <span className="flex items-center gap-0.5 text-[9px] font-bold text-amber-400 bg-amber-500/5 px-2 py-0.5 rounded-full border border-amber-500/15 animate-pulse">
+                              <span className="w-1 h-1 rounded-full bg-amber-400" /> {isSelected ? "En Curso" : "Activa"}
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-0.5 text-[9px] font-bold text-slate-500 bg-slate-950 px-2 py-0.5 rounded-full border border-slate-900">
+                              <Lock className="w-2.5 h-2.5" /> Bloqueada
+                            </span>
+                          )}
+                        </div>
+                        
+                        <h4 className="text-xs font-black text-white group-hover:text-amber-400 transition-colors line-clamp-1 font-display">
+                          {phase.title.split(": ")[1] || phase.title}
+                        </h4>
+                      </div>
+
+                      {/* Bottom section */}
+                      <div className="w-full pt-2 border-t border-slate-900/40 flex items-center justify-between text-[10px] text-slate-450 font-mono">
+                        <span>🏷️ {lessonCount} Capítulos</span>
+                        <span>⏱️ {phase.suggestedDuration || "2 semanas"}</span>
+                      </div>
+                      
+                      {/* Selection indicators */}
+                      {isSelected && (
+                        <div className="absolute -bottom-px left-4 right-4 h-0.5 bg-amber-500 rounded-full" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           
           {/* ================================== TAB 1: ROADMAP MAP PATH ================================== */}
           {activeTab === "camino" && (
@@ -2037,6 +2145,109 @@ FIN_SI`);
                 </div>
               </div>
 
+              {/* Información General de la Fase */}
+              {(() => {
+                const phase = curriculum.find(p => p.id === selectedPhaseId);
+                if (!phase) return null;
+                
+                return (
+                  <div className="glass-card rounded-3xl p-6 border border-slate-800/80 bg-slate-900/10 space-y-5 animate-slideUp">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-4">
+                      <div>
+                        <h4 className="text-xs font-bold text-amber-500/80 uppercase tracking-wider">Currículum Oficial Completado por Fases</h4>
+                        <h3 className="text-xl font-black text-white font-display mt-0.5">{phase.title}</h3>
+                      </div>
+                      {phase.suggestedDuration && (
+                        <span className="self-start sm:self-center px-3 py-1.5 bg-amber-500/10 border border-amber-500/25 text-xs font-bold text-amber-400 rounded-xl flex items-center gap-1.5 font-mono">
+                          ⏱️ Duración Sugerida: {phase.suggestedDuration}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {/* Objetivos y Explicación */}
+                      <div className="space-y-3 bg-slate-950/40 p-5 rounded-2xl border border-slate-900/80">
+                        <span className="text-[11px] font-black text-amber-500 uppercase tracking-widest block">🎯 Enfoque y Objetivos</span>
+                        <p className="text-xs text-slate-350 font-normal leading-relaxed">
+                          {phase.explanationOfPhase || phase.description}
+                        </p>
+                        {phase.objectives && phase.objectives.length > 0 && (
+                          <div className="pt-3 border-t border-slate-900/80 mt-2.5">
+                            <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1.5">Metas Clave:</span>
+                            <ul className="text-xs text-slate-400 space-y-1.5 list-disc list-inside font-light">
+                              {phase.objectives.map((obj, oIdx) => (
+                                <li key={oIdx} className="leading-relaxed">{obj}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Temas y Prácticas */}
+                      <div className="space-y-4 bg-slate-950/40 p-5 rounded-2xl border border-slate-900/80">
+                        {phase.temas && (
+                          <div className="space-y-2">
+                            <span className="text-[11px] font-black text-amber-500 uppercase tracking-widest block">📖 Temas de esta Fase</span>
+                            <div className="flex flex-wrap gap-1.5 pt-1">
+                              {phase.temas.map((tema, tIdx) => (
+                                <span key={tIdx} className="px-2.5 py-1 bg-slate-950 text-slate-300 text-[11px] font-mono rounded-lg border border-slate-800">
+                                  • {tema}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {phase.practices && (
+                          <div className="space-y-2 border-t border-slate-900/80 pt-3">
+                            <span className="text-[11px] font-black text-amber-500 uppercase tracking-widest block">🛠️ Prácticas de Aprendizaje</span>
+                            <ul className="text-xs text-slate-400 space-y-1.5 list-decimal list-inside font-light">
+                              {phase.practices.map((prac, pIdx) => (
+                                <li key={pIdx} className="leading-relaxed">{prac}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Guía de Práctica y Proyecto */}
+                      <div className="space-y-4 bg-slate-950/40 p-5 rounded-2xl border border-slate-900/80 md:col-span-2 lg:col-span-1 flex flex-col justify-between">
+                        {phase.stepByStepGuide && (
+                          <div className="space-y-2">
+                            <span className="text-[11px] font-black text-amber-500 uppercase tracking-widest block">🚀 Guía de Práctica en 7 Pasos</span>
+                            <div className="grid grid-cols-1 gap-1 text-[11px] text-slate-400 font-mono">
+                              {phase.stepByStepGuide.map((stepStr, sIdx) => (
+                                <div key={sIdx} className="flex items-center gap-2 bg-slate-900/50 p-1 rounded border border-slate-950">
+                                  <span className="text-amber-500 font-bold">P{sIdx + 1}</span>
+                                  <span className="truncate text-slate-300" title={stepStr}>{stepStr.split(": ")[1] || stepStr}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {phase.evaluationCriteria && (
+                          <div className="space-y-1.5 pt-2 border-t border-slate-900/80">
+                            <span className="text-[11px] font-black text-amber-500 uppercase tracking-widest block">📝 Criterios de Evaluación</span>
+                            <ul className="text-xs text-slate-400 space-y-1 list-disc list-inside font-light">
+                              {phase.evaluationCriteria.map((crit, cIdx) => (
+                                <li key={cIdx} className="leading-relaxed" title={crit}>{crit}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {phase.phaseProjectDescription && (
+                          <div className="mt-2 p-3 bg-amber-500/5 rounded-xl border border-amber-500/15 text-xs leading-relaxed">
+                            <span className="font-extrabold text-amber-400 block font-display mb-0.5">🏆 Proyecto de la Fase:</span>
+                            <span className="text-slate-300 font-light">{phase.phaseProjectDescription}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Contenido didáctico */}
               {(() => {
                 const phase = curriculum.find(p => p.id === selectedPhaseId);
@@ -2204,270 +2415,282 @@ FIN_SI`);
               </div>
 
               {/* EVALUATION QUIZ FASE 1 DISPLAY */}
-              <div 
-                id="evaluation-quiz-panel"
-                className={`glass-card rounded-3xl p-6 md:p-8 space-y-6 transition-all border ${
-                  completedStepIds.includes("step_phase1_module") 
-                    ? "border-amber-500/20 bg-slate-900/25" 
-                    : "border-slate-900 opacity-60 bg-slate-950/20"
-                }`}
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-900 pb-4">
-                  <div>
-                    <span className="px-2.5 py-0.5 bg-amber-500/10 text-amber-400 text-[9px] font-black uppercase rounded border border-amber-500/20">
-                      Evaluación Teórica • Fase 1
+              {selectedPhaseId === "phase_1" && (
+                <div 
+                  id="evaluation-quiz-panel"
+                  className={`glass-card rounded-3xl p-6 md:p-8 space-y-6 transition-all border ${
+                    completedStepIds.includes("step_phase1_module") 
+                      ? "border-amber-500/20 bg-slate-900/25" 
+                      : "border-slate-900 opacity-60 bg-slate-950/20"
+                  }`}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-900 pb-4">
+                    <div>
+                      <span className="px-2.5 py-0.5 bg-amber-500/10 text-amber-400 text-[9px] font-black uppercase rounded border border-amber-500/20">
+                        Evaluación Teórica • Fase 1
+                      </span>
+                      <h3 className="text-lg md:text-xl font-bold font-display text-white mt-1.5">
+                        Cuestionario de Lógica & Secuencias
+                      </h3>
+                    </div>
+
+                    <span className="text-xs font-mono text-slate-450 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800">
+                      Requisito: Madurar la Fase 1
                     </span>
-                    <h3 className="text-lg md:text-xl font-bold font-display text-white mt-1.5">
-                      Cuestionario de Lógica & Secuencias
-                    </h3>
                   </div>
 
-                  <span className="text-xs font-mono text-slate-450 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800">
-                    Requisito: Madurar la Fase 1
-                  </span>
-                </div>
+                  {!completedStepIds.includes("step_phase1_module") && !isAdminMode ? (
+                    <div className="p-8 text-center space-y-3 bg-slate-950/50 rounded-2xl border border-slate-900">
+                      <Lock className="w-10 h-10 text-slate-700 mx-auto" />
+                      <h4 className="text-sm font-bold text-slate-400 uppercase">Evaluación Bloqueada temporalmente</h4>
+                      <p className="text-xs text-slate-500 max-w-sm mx-auto font-light">
+                        Debes asimilar las lecciones de la Fase 1 en la visualización &ldquo;Taller Activo & Lección&rdquo; para autorizarte este examen oficial.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {/* Render questions inside general path step for phase 1 */}
+                      {(() => {
+                        const evalStep = pathSteps.find(s => s.id === "step_phase1_eval");
+                        if (!evalStep || !evalStep.quizQuestions) return null;
 
-                {!completedStepIds.includes("step_phase1_module") ? (
-                  <div className="p-8 text-center space-y-3 bg-slate-950/50 rounded-2xl border border-slate-900">
-                    <Lock className="w-10 h-10 text-slate-700 mx-auto" />
-                    <h4 className="text-sm font-bold text-slate-400 uppercase">Evaluación Bloqueada temporalmente</h4>
-                    <p className="text-xs text-slate-500 max-w-sm mx-auto font-light">
-                      Debes asimilar las 3 lecciones de la Fase 1 en la visualización &ldquo;Taller Activo & Lección&rdquo; para autorizarte este examen oficial.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {/* Render questions inside general path step for phase 1 */}
-                    {(() => {
-                      const evalStep = pathSteps.find(s => s.id === "step_phase1_eval");
-                      if (!evalStep || !evalStep.quizQuestions) return null;
-
-                      return (
-                        <div className="space-y-6">
-                          {evalStep.quizQuestions.map((q, qIdx) => {
-                            const selectedIdx = selectedQuizAnswers[q.id];
-                            return (
-                              <div key={q.id} className="p-5 bg-slate-900/30 rounded-2xl border border-slate-800/80 space-y-3">
-                                <h4 className="text-sm md:text-base font-bold text-slate-200">
-                                  {qIdx + 1}. {q.question}
-                                </h4>
-                                
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                                  {q.options.map((option, oIdx) => {
-                                    const isSelected = selectedIdx === oIdx;
-                                    return (
-                                      <button
-                                        key={oIdx}
-                                        id={`quiz-option-btn-${q.id}-${oIdx}`}
-                                        disabled={quizSubmitted && quizPassed}
-                                        onClick={() => handleQuizAnswerSelect(q.id, oIdx)}
-                                        className={`p-3 rounded-xl text-left text-xs transition-all flex items-start gap-2 border ${
-                                          isSelected 
-                                            ? "bg-amber-500/10 border-amber-500 text-amber-400 font-bold" 
-                                            : "bg-slate-950 border-slate-900 text-slate-300 hover:border-slate-800"
-                                        }`}
-                                      >
-                                        <span className={`w-4 h-4 rounded-full border flex items-center justify-center mt-0.5 flex-shrink-0 ${
-                                          isSelected ? "border-amber-500 bg-amber-500/20" : "border-slate-800"
-                                        }`}>
-                                          {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />}
-                                        </span>
-                                        {option}
-                                      </button>
-                                    );
-                                  })}
+                        return (
+                          <div className="space-y-6">
+                            {evalStep.quizQuestions.map((q, qIdx) => {
+                              const selectedIdx = selectedQuizAnswers[q.id];
+                              return (
+                                <div key={q.id} className="p-5 bg-slate-900/30 rounded-2xl border border-slate-800/80 space-y-3">
+                                  <h4 className="text-sm md:text-base font-bold text-slate-200">
+                                    {qIdx + 1}. {q.question}
+                                  </h4>
+                                  
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                                    {q.options.map((option, oIdx) => {
+                                      const isSelected = selectedIdx === oIdx;
+                                      return (
+                                        <button
+                                          key={oIdx}
+                                          id={`quiz-option-btn-${q.id}-${oIdx}`}
+                                          disabled={quizSubmitted && quizPassed}
+                                          onClick={() => handleQuizAnswerSelect(q.id, oIdx)}
+                                          className={`p-3 rounded-xl text-left text-xs transition-all flex items-start gap-2 border ${
+                                            isSelected 
+                                              ? "bg-amber-500/10 border-amber-500 text-amber-400 font-bold" 
+                                              : "bg-slate-950 border-slate-900 text-slate-300 hover:border-slate-800"
+                                          }`}
+                                        >
+                                          <span className={`w-4 h-4 rounded-full border flex items-center justify-center mt-0.5 flex-shrink-0 ${
+                                            isSelected ? "border-amber-500 bg-amber-500/20" : "border-slate-800"
+                                          }`}>
+                                            {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />}
+                                          </span>
+                                          {option}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
                                 </div>
-                              </div>
-                            );
-                          })}
+                              );
+                            })}
 
-                          {/* Submit Actions */}
-                          <div className="pt-4 border-t border-slate-900 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                            <p className="text-xs text-slate-500 italic max-w-md font-light">
-                              Presiona Verificar Respuestas. Para aprobar formalmente debes tener el 100% correctas. Puedes reintentar las veces que requieras.
-                            </p>
-                            
-                            <div className="flex gap-3">
+                            {/* Submit Actions */}
+                            <div className="pt-4 border-t border-slate-900 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                              <p className="text-xs text-slate-500 italic max-w-md font-light">
+                                Presiona Verificar Respuestas. Para aprobar formalmente debes tener el 100% correctas. Puedes reintentar las veces que requieras.
+                              </p>
+                              
+                              <div className="flex gap-3">
+                                <button
+                                  id="submit-quiz-answers-btn"
+                                  onClick={() => handleSubmitQuiz(evalStep.quizQuestions || [], "phase_1")}
+                                  className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl transition-all shadow shadow-amber-500/10 font-display"
+                                >
+                                  Verificar Respuestas
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Feedback evaluation */}
+                            {quizSubmitted && (
+                              <div className={`p-4 rounded-2xl border flex items-start gap-3 animate-fadeIn ${
+                                quizPassed 
+                                  ? "bg-emerald-950/20 border-emerald-500/30 text-emerald-300"
+                                  : "bg-rose-950/20 border-rose-500/30 text-rose-300"
+                              }`} id="quiz-result-message-box">
+                                {quizPassed ? (
+                                  <>
+                                    <Check className="w-5 h-5 text-emerald-450 mt-0.5 flex-shrink-0" />
+                                    <div>
+                                      <p className="text-xs font-bold uppercase tracking-wider">¡Aprobado con Distinción Científica!</p>
+                                      <p className="text-xs mt-0.5 text-slate-300 font-light">¡Fabuloso! Tu puntuación fue perfecta. Has asimilado la lógica secuencial y condicional. Has desbloqueado formalmente tu insignia de Lógica de Oro en el Cuaderno.</p>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <>
+                                    <AlertCircle className="w-5 h-5 text-rose-450 mt-0.5 flex-shrink-0" />
+                                    <div>
+                                      <p className="text-xs font-bold uppercase tracking-wider">Algunas respuestas no son lógicas todavía</p>
+                                      <p className="text-xs mt-0.5 text-slate-300 font-light">Por favor, repasa las preguntas señaladas o la teoría en el taller. La perseverancia intelectual es la base de todo mentor.</p>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            )}
+
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* PROJECT TEST WORKSPACE FOR FASE 2 & FASE 3 DISPLAY */}
+              {(selectedPhaseId === "phase_2" || selectedPhaseId === "phase_3") && (
+                <div 
+                  id="project-test-panel"
+                  className={`glass-card rounded-3xl p-6 md:p-8 space-y-6 transition-all border ${
+                    (selectedPhaseId === "phase_2" ? completedStepIds.includes("step_phase2_module") : completedStepIds.includes("step_phase3_module"))
+                      ? "border-amber-500/20 bg-slate-900/25" 
+                      : "border-slate-900 opacity-60 bg-slate-950/20"
+                  }`}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-900 pb-4">
+                    <div>
+                      <span className="px-2.5 py-0.5 bg-amber-500/10 text-amber-400 text-[9px] font-black uppercase rounded border border-amber-500/20">
+                        Reto de Certificación Práctico • {selectedPhaseId === "phase_2" ? "Fase 2" : "Fase 3"}
+                      </span>
+                      <h3 className="text-lg md:text-xl font-bold font-display text-white mt-1.5">
+                        {selectedPhaseId === "phase_2" ? "Desafío: Calculadora Básica Interactiva" : "Desafío: Sistema Personal de Organización"}
+                      </h3>
+                    </div>
+
+                    <span className="text-xs font-mono text-slate-450 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800">
+                      Requisito: Madurar la {selectedPhaseId === "phase_2" ? "Fase 2" : "Fase 3"}
+                    </span>
+                  </div>
+
+                  {!(selectedPhaseId === "phase_2" ? completedStepIds.includes("step_phase2_module") : completedStepIds.includes("step_phase3_module")) && !isAdminMode ? (
+                    <div className="p-8 text-center space-y-3 bg-slate-950/50 rounded-2xl border border-slate-900">
+                      <Lock className="w-10 h-10 text-slate-700 mx-auto" />
+                      <h4 className="text-sm font-bold text-slate-400 uppercase">Reto Bloqueado temporalmente</h4>
+                      <p className="text-xs text-slate-500 max-w-sm mx-auto font-light">
+                        Debes completar primero todas las lecciones del taller interactivo de la {selectedPhaseId === "phase_2" ? "Fase 2 (Primer Lenguaje)" : "Fase 3 (Resolver Problemas)"} para darte de alta en este desafío de certificación práctica.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
+                      
+                      {/* Instructions of challenge */}
+                      <div className="xl:col-span-5 space-y-4 flex flex-col justify-between">
+                        <div className="p-5 bg-slate-950/65 rounded-2xl border border-slate-900 space-y-3">
+                          <span className="text-xs font-bold text-amber-500 uppercase tracking-wider block flex items-center gap-1">
+                            <FileText className="w-4 h-4 text-amber-550" />
+                            Instrucciones del Certificador:
+                          </span>
+                          
+                          <p className="text-xs leading-relaxed text-slate-300 font-light pt-1 border-t border-slate-900">
+                            {pathSteps.find(s => s.phaseId === selectedPhaseId && s.type === "phase_project")?.projectTemplate?.instructions || "Completa el desafío propuesto utilizando el editor integrado."}
+                          </p>
+                          <p className="text-xs leading-relaxed text-slate-450 italic font-mono bg-slate-900 p-2.5 rounded-lg border border-slate-800/50">
+                            {selectedPhaseId === "phase_2" 
+                              ? "Variables requeridas: operacion, num1, num2, resultado, error_detectado."
+                              : "Variables requeridas: consulta_tipo, conteo_items, estado_completado, total_estimado, limite_excedido, total_contactos, error_consulta."}
+                          </p>
+                        </div>
+
+                        {projectSuccess ? (
+                          <div className="p-4 bg-emerald-950/20 border border-emerald-500/25 text-emerald-400 rounded-2xl flex items-start gap-2.5 animate-fadeIn" id="project-congratulations-box">
+                            <CheckCircle className="w-5 h-5 text-emerald-450 mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="text-xs font-bold uppercase tracking-wider">¡Código Correcto y Homologado!</p>
+                              <p className="text-xs mt-0.5 text-slate-300 leading-relaxed font-light">
+                                {selectedPhaseId === "phase_2"
+                                  ? `¡Excelente desarrollo de la Calculadora, ${studentName || "Alberto"}! Lograste procesar y validar las operaciones aritméticas en Python de forma impecable.`
+                                  : `¡Excelente desarrollo lógico, ${studentName || "Alberto"}! Lograste resolver el desafío del Sistema Personal de Organización con éxito absoluto.`}
+                              </p>
+                              
                               <button
-                                id="submit-quiz-answers-btn"
-                                onClick={() => handleSubmitQuiz(evalStep.quizQuestions || [], "phase_1")}
-                                className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl transition-all shadow shadow-amber-500/10 font-display"
+                                id="claim-project-badge-btn"
+                                onClick={() => {
+                                  const currentProjectStep = pathSteps.find(s => s.phaseId === selectedPhaseId && s.type === "phase_project");
+                                  if (currentProjectStep) {
+                                    const phase = curriculum.find(p => p.id === selectedPhaseId);
+                                    handleCompleteProject(currentProjectStep.id, phase?.badgeName || "Placa Profesional Python");
+                                  }
+                                }}
+                                className="mt-3 px-4 py-2 bg-emerald-500 hover:bg-emerald-450 text-slate-950 text-xs font-black rounded-xl transition flex items-center gap-1.5 font-display"
                               >
-                                Verificar Respuestas
+                                Registrar Logro de Proyecto
+                                <ArrowRight className="w-3.5 h-3.5" />
                               </button>
                             </div>
                           </div>
-
-                          {/* Feedback evaluation */}
-                          {quizSubmitted && (
-                            <div className={`p-4 rounded-2xl border flex items-start gap-3 animate-fadeIn ${
-                              quizPassed 
-                                ? "bg-emerald-950/20 border-emerald-500/30 text-emerald-300"
-                                : "bg-rose-950/20 border-rose-500/30 text-rose-300"
-                            }`} id="quiz-result-message-box">
-                              {quizPassed ? (
-                                <>
-                                  <Check className="w-5 h-5 text-emerald-450 mt-0.5 flex-shrink-0" />
-                                  <div>
-                                    <p className="text-xs font-bold uppercase tracking-wider">¡Aprobado con Distinción Científica!</p>
-                                    <p className="text-xs mt-0.5 text-slate-300 font-light">¡Fabuloso! Tu puntuación fue perfecta. Has asimilado la lógica secuencial y condicional. Has desbloqueado formalmente tu insignia de Lógica de Oro en el Cuaderno.</p>
-                                  </div>
-                                </>
-                              ) : (
-                                <>
-                                  <AlertCircle className="w-5 h-5 text-rose-450 mt-0.5 flex-shrink-0" />
-                                  <div>
-                                    <p className="text-xs font-bold uppercase tracking-wider">Algunas respuestas no son lógicas todavía</p>
-                                    <p className="text-xs mt-0.5 text-slate-300 font-light">Por favor, repasa las preguntas señaladas o la teoría en el taller. La perseverancia intelectual es la base de todo mentor.</p>
-                                  </div>
-                                </>
-                              )}
+                        ) : (
+                          <div className="p-4 bg-slate-950/80 border border-slate-900 rounded-2xl flex items-start gap-2.5 text-slate-400">
+                            <AlertCircle className="w-5 h-5 text-amber-550 mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="text-xs font-bold uppercase tracking-wider text-slate-350">Esperando complacencia de requisitos...</p>
+                              <p className="text-xs mt-0.5 text-slate-405 leading-relaxed font-light">Edita el programa a la derecha asegurándote de usar los valores y variables requeridas para habilitar la firma de tu logro.</p>
                             </div>
-                          )}
-
-                        </div>
-                      );
-                    })()}
-                  </div>
-                )}
-              </div>
-
-              {/* PROJECT TEST WORKSPACE FASE 2 DISPLAY */}
-              <div 
-                id="project-test-panel"
-                className={`glass-card rounded-3xl p-6 md:p-8 space-y-6 transition-all border ${
-                  completedStepIds.includes("step_phase1_eval") 
-                    ? "border-amber-500/20 bg-slate-900/25" 
-                    : "border-slate-900 opacity-60 bg-slate-950/20"
-                }`}
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-900 pb-4">
-                  <div>
-                    <span className="px-2.5 py-0.5 bg-amber-500/10 text-amber-400 text-[9px] font-black uppercase rounded border border-amber-500/20">
-                      Reto de Certificación Práctico • Fase 2
-                    </span>
-                    <h3 className="text-lg md:text-xl font-bold font-display text-white mt-1.5">
-                      Desafío: Sistema de Jubilación Feliz
-                    </h3>
-                  </div>
-
-                  <span className="text-xs font-mono text-slate-450 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800">
-                    Requisito: Aprobar Cuestionario
-                  </span>
-                </div>
-
-                {!completedStepIds.includes("step_phase1_eval") ? (
-                  <div className="p-8 text-center space-y-3 bg-slate-950/50 rounded-2xl border border-slate-900">
-                    <Lock className="w-10 h-10 text-slate-700 mx-auto" />
-                    <h4 className="text-sm font-bold text-slate-400 uppercase">Reto Bloqueado temporalmente</h4>
-                    <p className="text-xs text-slate-500 max-w-sm mx-auto font-light">
-                      Debes aprobar con éxito el &ldquo;Cuestionario de Lógica & Secuencias&rdquo; precedente para certificar tus conocimientos con este desafío de programación real.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
-                    
-                    {/* Instructions of challenge */}
-                    <div className="xl:col-span-5 space-y-4 flex flex-col justify-between">
-                      <div className="p-5 bg-slate-950/65 rounded-2xl border border-slate-900 space-y-3">
-                        <span className="text-xs font-bold text-amber-500 uppercase tracking-wider block flex items-center gap-1">
-                          <FileText className="w-4 h-4 text-amber-550" />
-                          Instrucciones del Certificador:
-                        </span>
-                        
-                        <p className="text-xs leading-relaxed text-slate-300 font-light pt-1 border-t border-slate-900">
-                          Imagina que construyes una pequeña herramienta de finanzas para evaluar el retiro feliz en el banco de tu localidad. 
-                        </p>
-                        <p className="text-xs leading-relaxed text-slate-300 font-light">
-                          Escribe un programa lógico que declare <strong className="text-amber-500">ahorros_actuales = 62000</strong>.
-                        </p>
-                        <ul className="text-xs text-slate-405 space-y-1 font-mono list-disc list-inside">
-                          <li>SI los ahorros_actuales son mayores o iguales a 50000, establece la variable <strong className="text-amber-500">jubilado_feliz = verdadero</strong> e imprime o Log &ldquo;Acceso autorizado al descanso&rdquo;.</li>
-                          <li>SINO, establece <strong className="text-amber-500">jubilado_feliz = falso</strong> y log &ldquo;Requiere aportes de refuerzo&rdquo;.</li>
-                        </ul>
+                          </div>
+                        )}
                       </div>
 
-                      {projectSuccess ? (
-                        <div className="p-4 bg-emerald-950/20 border border-emerald-500/25 text-emerald-400 rounded-2xl flex items-start gap-2.5 animate-fadeIn" id="project-congratulations-box">
-                          <CheckCircle className="w-5 h-5 text-emerald-450 mt-0.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-xs font-bold uppercase tracking-wider">¡Código Correcto y Homologado!</p>
-                            <p className="text-xs mt-0.5 text-slate-300 leading-relaxed font-light">¡Excelente desarrollo lógico, Alberto! Lograste procesar de forma automatizada las finanzas de jubilación con éxito absoluto.</p>
+                      {/* Integrated mini code Editor challenge */}
+                      <div className="xl:col-span-7 space-y-3">
+                        <div className="bg-slate-950 p-4 rounded-2xl border border-slate-900 gap-3 flex flex-col">
+                          <div className="flex justify-between items-center text-xs font-mono text-slate-400">
+                            <span>{selectedPhaseId === "phase_2" ? "CALCULADORA_INTERACTIVA.PY" : "SISTEMA_ORGANIZADOR.PY"}</span>
                             
                             <button
-                              id="claim-project-badge-btn"
-                              onClick={() => handleCompleteProject("step_phase2_project", "Placa Profesional Python")}
-                              className="mt-3 px-4 py-2 bg-emerald-500 hover:bg-emerald-450 text-slate-950 text-xs font-black rounded-xl transition flex items-center gap-1.5 font-display"
+                              id="run-project-evalution-btn"
+                              onClick={() => {
+                                const step = pathSteps.find(s => s.phaseId === selectedPhaseId && s.type === "phase_project");
+                                if (step?.projectTemplate) {
+                                  handleRunProject(step.projectTemplate.solutionKeywords);
+                                }
+                              }}
+                              className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3.5 py-1.5 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 font-display"
                             >
-                              Registrar Proyecto Financiero
-                              <ArrowRight className="w-3.5 h-3.5" />
+                              <Play className="w-3 h-3 fill-slate-950" />
+                              Validar Lógica
                             </button>
                           </div>
-                        </div>
-                      ) : (
-                        <div className="p-4 bg-slate-950/80 border border-slate-900 rounded-2xl flex items-start gap-2.5 text-slate-400">
-                          <AlertCircle className="w-5 h-5 text-amber-550 mt-0.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-xs font-bold uppercase tracking-wider text-slate-350">Esperando complacencia de requisitos...</p>
-                            <p className="text-xs mt-0.5 text-slate-405 leading-relaxed font-light">Edita el programa a la derecha asegurándote de usar los valores y variables requeridas para habilitar la firma de tu logro.</p>
+
+                          <textarea
+                            id="project-editor-textarea"
+                            value={projectCode}
+                            onChange={(e) => {
+                              setProjectCode(e.target.value);
+                              setProjectSuccess(false);
+                            }}
+                            className={`w-full h-48 p-3 bg-slate-900 border border-slate-800 rounded-xl font-mono text-amber-100 outline-none resize-none ${getFontSizeClass("code")}`}
+                            placeholder="// Completa tu validador..."
+                          />
+
+                          {/* Logs outcome */}
+                          <div className="bg-slate-900 rounded-xl p-3 border border-slate-800 font-mono text-xs max-h-24 overflow-y-auto space-y-1">
+                            <span className="text-[9px] text-slate-500 uppercase block tracking-wider font-mono">Consola del Reto:</span>
+                            {projectLogs.map((log, lIdx) => (
+                              <div key={lIdx} className="text-emerald-450">
+                                » {log}
+                              </div>
+                            ))}
+                            {projectLogs.length === 0 && (
+                              <span className="text-[10px] text-slate-650 italic">No hay outputs en cola...</span>
+                            )}
+                            {projectError && (
+                              <p className="text-rose-455 text-[11px] font-bold">⚠️ Error: {projectError}</p>
+                            )}
                           </div>
                         </div>
-                      )}
-                    </div>
-
-                    {/* Integrated mini code Editor challenge */}
-                    <div className="xl:col-span-7 space-y-3">
-                      <div className="bg-slate-950 p-4 rounded-2xl border border-slate-900 gap-3 flex flex-col">
-                        <div className="flex justify-between items-center text-xs font-mono text-slate-400">
-                          <span>PROYECTO_JUBILACION.PY</span>
-                          
-                          <button
-                            id="run-project-evalution-btn"
-                            onClick={() => {
-                              const step = pathSteps.find(s => s.id === "step_phase2_project");
-                              if (step?.projectTemplate) {
-                                handleRunProject(step.projectTemplate.solutionKeywords);
-                              }
-                            }}
-                            className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3.5 py-1.5 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 font-display"
-                          >
-                            <Play className="w-3 h-3 fill-slate-950" />
-                            Validar Lógica
-                          </button>
-                        </div>
-
-                        <textarea
-                          id="project-editor-textarea"
-                          value={projectCode}
-                          onChange={(e) => {
-                            setProjectCode(e.target.value);
-                            setProjectSuccess(false);
-                          }}
-                          className={`w-full h-48 p-3 bg-slate-900 border border-slate-800 rounded-xl font-mono text-amber-100 outline-none resize-none ${getFontSizeClass("code")}`}
-                          placeholder="// Completa tu validador..."
-                        />
-
-                        {/* Logs outcome */}
-                        <div className="bg-slate-900 rounded-xl p-3 border border-slate-800 font-mono text-xs max-h-24 overflow-y-auto space-y-1">
-                          <span className="text-[9px] text-slate-500 uppercase block tracking-wider font-mono">Consola del Reto:</span>
-                          {projectLogs.map((log, lIdx) => (
-                            <div key={lIdx} className="text-emerald-450">
-                              » {log}
-                            </div>
-                          ))}
-                          {projectLogs.length === 0 && (
-                            <span className="text-[10px] text-slate-600 italic">No hay outputs en cola...</span>
-                          )}
-                          {projectError && (
-                            <p className="text-rose-400 text-[11px] font-bold">⚠️ Error: {projectError}</p>
-                          )}
-                        </div>
                       </div>
-                    </div>
 
-                  </div>
-                )}
-              </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
             </div>
           )}
@@ -2613,7 +2836,7 @@ FIN_SI`);
                     <Trophy className={`w-12 h-12 ${completedStepIds.includes("step_phase1_eval") ? "text-amber-500 animate-pulse-glow" : "text-slate-700"}`} />
                     <div>
                       <h4 className="text-sm font-bold text-white">Insignia Lógica de Oro</h4>
-                      <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">Concedida al resolver y aprobar el cuestionario de condicionales con perfección.</p>
+                      <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">Concedida al resolver y aprobar el cuestionario de condicionales de la Fase 1.</p>
                     </div>
                   </div>
 
@@ -2626,11 +2849,24 @@ FIN_SI`);
                     <Trophy className={`w-12 h-12 ${completedStepIds.includes("step_phase2_project") ? "text-amber-500 animate-pulse-glow" : "text-slate-700"}`} />
                     <div>
                       <h4 className="text-sm font-bold text-white">Placa Profesional Python</h4>
-                      <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">Concedida tras resolver exitosamente el algoritmo financiero de jubilación feliz.</p>
+                      <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">Concedida tras resolver exitosamente el proyecto de la calculadora básica interactiva en Python.</p>
                     </div>
                   </div>
 
                   {/* Badge 3 */}
+                  <div className={`p-5 rounded-2xl border flex flex-col items-center text-center space-y-3 ${
+                    completedStepIds.includes("step_phase3_project") 
+                      ? "bg-slate-900/40 border-amber-500/25 cursor-pointer hover:border-amber-500/40 transition" 
+                      : "bg-slate-950/20 border-slate-900 opacity-40 select-none"
+                  }`}>
+                    <Trophy className={`w-12 h-12 ${completedStepIds.includes("step_phase3_project") ? "text-amber-500 animate-pulse-glow" : "text-slate-700"}`} />
+                    <div>
+                      <h4 className="text-sm font-bold text-white">Laurel de Algoritmia Avanzada</h4>
+                      <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">Concedida tras resolver exitosamente el proyecto del sistema personal de organización de la Fase 3.</p>
+                    </div>
+                  </div>
+
+                  {/* Badge 4 */}
                   <div className={`p-5 rounded-2xl border flex flex-col items-center text-center space-y-3 ${
                     completedStepIds.includes("step_finish") 
                       ? "bg-slate-900/40 border-amber-500/25 cursor-pointer hover:border-amber-500/40 transition" 

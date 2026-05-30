@@ -47,4 +47,11 @@ export interface Phase {
   challengeTitle: string;
   challengeDescription: string;
   lessons: Lesson[];
+  suggestedDuration?: string;
+  temas?: string[];
+  explanationOfPhase?: string;
+  practices?: string[];
+  stepByStepGuide?: string[];
+  evaluationCriteria?: string[];
+  phaseProjectDescription?: string;
 }
