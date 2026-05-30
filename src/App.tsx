@@ -228,6 +228,8 @@ export default function App() {
   });
 
   // Active Lesson Context
+  const [showHeader, setShowHeader] = useState<boolean>(true);
+  const [showMobileSettings, setShowMobileSettings] = useState<boolean>(false);
   const [selectedPhaseId, setSelectedPhaseId] = useState<string>("phase_1");
   const [selectedLessonIdx, setSelectedLessonIdx] = useState<number>(0);
 
@@ -393,6 +395,32 @@ FIN_SI`);
   useEffect(() => {
     localStorage.setItem("adult_mentor_registered_users", JSON.stringify(registeredUsers));
   }, [registeredUsers]);
+
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+    
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // If we are at the top or scrolled less than 80px, keep header visible
+      if (currentScrollY <= 80) {
+        setShowHeader(true);
+      } else if (currentScrollY > lastScrollY) {
+        // Scrolling down -> hide
+        setShowHeader(false);
+      } else {
+        // Scrolling up -> show
+        setShowHeader(true);
+      }
+      
+      lastScrollY = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   useEffect(() => {
     if (prevUserRef.current !== currentUser) {
@@ -1603,7 +1631,12 @@ FIN_SI`);
       )}
 
       {/* HEADER PRINCIPAL */}
-      <header className="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 shadow-xl" id="app-main-header">
+      <header 
+        className={`bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 shadow-xl transition-all duration-300 ease-in-out ${
+          showHeader ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0 pointer-events-none"
+        }`} 
+        id="app-main-header"
+      >
         <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           
           <div className="flex items-center gap-3.5">
@@ -1621,7 +1654,7 @@ FIN_SI`);
             </div>
           </div>
 
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="hidden md:flex items-center gap-3 flex-wrap">
             {/* Controladores de lectura de letra */}
             <div className="bg-slate-950 p-1.5 rounded-xl border border-slate-800 flex items-center gap-1">
               <span className="text-[10px] font-bold tracking-widest px-2 text-slate-400 uppercase">Lectura:</span>
@@ -1708,7 +1741,116 @@ FIN_SI`);
               Cerrar Sesión
             </button>
           </div>
+
+          {/* ACCIONES DE CONTROL COMPACTOS PARA MÓVIL (Súper optimizado contra desbordamiento) */}
+          <div className="flex md:hidden items-center gap-2">
+            <button
+              id="mobile-settings-toggle-btn"
+              onClick={() => setShowMobileSettings(!showMobileSettings)}
+              className={`p-2.5 rounded-xl border transition-all ${
+                showMobileSettings 
+                  ? "bg-amber-500 text-slate-950 border-amber-400 shadow shadow-amber-500/20" 
+                  : "bg-slate-950 border-slate-800 text-slate-350 hover:text-white"
+              }`}
+              title="Ajustes de Aula y Lectura"
+            >
+              <Settings className={`w-4 h-4 ${showMobileSettings ? "animate-spin-slow" : ""}`} />
+            </button>
+
+            <button
+              id="logout-btn-mobile"
+              onClick={handleLogout}
+              className="p-2.5 rounded-xl border border-rose-950/40 bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white transition-all flex items-center gap-1 text-xs font-bold"
+              title="Cerrar Sesión de mi Aula"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              Salir
+            </button>
+          </div>
         </div>
+
+        {/* PANEL CONSOLA DE CONFIGURACIÓN EXPANDIBLE PARA MÓVIL */}
+        {showMobileSettings && (
+          <div className="md:hidden px-4 pb-4 pt-2.5 border-t border-slate-800/60 bg-slate-950/95 space-y-4 animate-slideDown" id="mobile-expanded-settings">
+            {/* Lectura Normal / Grande / Gigante */}
+            <div className="space-y-1.5">
+              <span className="text-[10px] font-black tracking-widest text-slate-500 uppercase font-mono block">Tamaño Visual de Letra:</span>
+              <div className="grid grid-cols-3 gap-1 bg-slate-900 p-1 rounded-xl border border-slate-850">
+                <button
+                  onClick={() => setTextSize("normal")}
+                  className={`py-1.5 text-xs rounded-lg font-bold transition-all ${textSize === "normal" ? "bg-amber-500 text-slate-950 shadow" : "text-slate-400 hover:text-white"}`}
+                >
+                  Fina (A)
+                </button>
+                <button
+                  onClick={() => setTextSize("grande")}
+                  className={`py-1.5 text-xs rounded-lg font-bold transition-all ${textSize === "grande" ? "bg-amber-500 text-slate-950 shadow" : "text-slate-400 hover:text-white"}`}
+                >
+                  Estándar (A+)
+                </button>
+                <button
+                  onClick={() => setTextSize("muyGrande")}
+                  className={`py-1.5 text-xs rounded-lg font-black transition-all ${textSize === "muyGrande" ? "bg-amber-500 text-slate-950 shadow" : "text-slate-400 hover:text-white"}`}
+                >
+                  Súper (A++)
+                </button>
+              </div>
+            </div>
+
+            {/* Admin toggle, Desbloquear Todo, Reiniciar */}
+            <div className="flex flex-col gap-2.5 pt-3 border-t border-slate-900">
+              <button
+                onClick={() => {
+                  if (currentUser?.toLowerCase() === "admin") {
+                    alert("La cuenta de 'admin' tiene las herramientas de Creador/Administrador permanentemente habilitadas.");
+                    setActiveTab("admin");
+                    return;
+                  }
+                  const newMode = !isAdminMode;
+                  setIsAdminMode(newMode);
+                  if (newMode) {
+                    setActiveTab("admin");
+                  } else if (activeTab === "admin") {
+                    setActiveTab("camino");
+                  }
+                  setShowMobileSettings(false);
+                }}
+                className={`w-full py-2.5 rounded-xl text-xs font-black border transition-all flex items-center justify-center gap-1.5 ${
+                  isAdminMode 
+                    ? "bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 text-slate-950 border-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]" 
+                    : "bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-950 border-amber-400"
+                }`}
+              >
+                <Shield className="w-3.5 h-3.5 text-slate-950" />
+                {isAdminMode ? "Modo Creador: Activo" : "Activar Modo Creador ⭐"}
+              </button>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => {
+                    handleAdminCompleteAll();
+                    setShowMobileSettings(false);
+                  }}
+                  className="py-2.5 rounded-xl text-[10px] font-black bg-slate-900 hover:bg-slate-850 text-amber-400 border border-amber-500/20 transition-all flex items-center justify-center gap-1"
+                >
+                  <Sparkles className="w-3 h-3 text-amber-400" />
+                  Desbloquear Todo
+                </button>
+
+                <button
+                  onClick={() => {
+                    handleResetCourse();
+                    setShowMobileSettings(false);
+                  }}
+                  className="py-2.5 rounded-xl text-[10px] font-bold bg-slate-900 hover:bg-slate-850 text-slate-450 border border-slate-800 transition flex items-center justify-center gap-1"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  Borrar Progreso
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Global Progress Track Bar */}
         <div className="bg-slate-950/65 border-t border-slate-800 py-3 px-4">
@@ -1743,7 +1885,7 @@ FIN_SI`);
         <aside className="lg:col-span-3 flex flex-col gap-6" id="aside-column">
           
           {/* Tarjeta de Perfil Adulto - Alberto */}
-          <div className="glass-card rounded-3xl p-6 flex flex-col gap-4">
+          <div className="glass-card rounded-3xl p-4 sm:p-6 flex flex-col gap-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center border border-slate-800">
                 <User className="w-6 h-6 text-amber-500" />
@@ -1755,7 +1897,7 @@ FIN_SI`);
                   type="text"
                   value={studentName}
                   onChange={(e) => setStudentName(e.target.value)}
-                  className="bg-transparent text-xl font-bold text-white border-b border-transparent hover:border-slate-800 focus:border-amber-505 outline-none transition-all py-0.5 w-36"
+                  className="bg-transparent text-xl font-bold text-white border-b border-transparent hover:border-slate-800 focus:border-amber-500/50 outline-none transition-all py-0.5 w-36"
                   placeholder="Tu Nombre"
                   title="Haz clic para personalizar tu nombre de mentor"
                 />
@@ -1816,7 +1958,7 @@ FIN_SI`);
             <button
               id="tab-btn-road"
               onClick={() => setActiveTab("camino")}
-              className={`flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap lg:w-full font-display border border-transparent ${activeTab === "camino" ? "bg-amber-500 text-slate-950 shadow-md font-extrabold" : "text-slate-300 hover:bg-slate-900/80 hover:text-white"}`}
+              className={`flex items-center gap-3 px-3 py-2.5 md:px-4 md:py-3.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap lg:w-full font-display border border-transparent ${activeTab === "camino" ? "bg-amber-500 text-slate-950 shadow-md font-extrabold" : "text-slate-300 hover:bg-slate-900/80 hover:text-white"}`}
             >
               <BookOpen className="w-4 h-4 text-inherit" />
               Camino de Aprendizaje
@@ -1832,7 +1974,7 @@ FIN_SI`);
                   setSelectedLessonIdx(0);
                 }
               }}
-              className={`flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap lg:w-full font-display border border-transparent ${activeTab === "modulo" ? "bg-amber-500 text-slate-950 shadow-md font-extrabold" : "text-slate-300 hover:bg-slate-900/80 hover:text-white"}`}
+              className={`flex items-center gap-3 px-3 py-2.5 md:px-4 md:py-3.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap lg:w-full font-display border border-transparent ${activeTab === "modulo" ? "bg-amber-500 text-slate-950 shadow-md font-extrabold" : "text-slate-300 hover:bg-slate-900/80 hover:text-white"}`}
             >
               <Code className="w-4 h-4 text-inherit" />
               Taller Activo & Lección
@@ -1841,7 +1983,7 @@ FIN_SI`);
             <button
               id="tab-btn-play"
               onClick={() => setActiveTab("taller")}
-              className={`flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap lg:w-full font-display border border-transparent ${activeTab === "taller" ? "bg-amber-500 text-slate-950 shadow-md font-extrabold" : "text-slate-300 hover:bg-slate-900/80 hover:text-white"}`}
+              className={`flex items-center gap-3 px-3 py-2.5 md:px-4 md:py-3.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap lg:w-full font-display border border-transparent ${activeTab === "taller" ? "bg-amber-500 text-slate-950 shadow-md font-extrabold" : "text-slate-300 hover:bg-slate-900/80 hover:text-white"}`}
             >
               <Terminal className="w-4 h-4 text-inherit" />
               Práctica de Exámenes
@@ -1850,7 +1992,7 @@ FIN_SI`);
             <button
               id="tab-btn-notes"
               onClick={() => setActiveTab("progreso")}
-              className={`flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap lg:w-full font-display border border-transparent ${activeTab === "progreso" ? "bg-amber-500 text-slate-950 shadow-md font-extrabold" : "text-slate-300 hover:bg-slate-900/80 hover:text-white"}`}
+              className={`flex items-center gap-3 px-3 py-2.5 md:px-4 md:py-3.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap lg:w-full font-display border border-transparent ${activeTab === "progreso" ? "bg-amber-500 text-slate-950 shadow-md font-extrabold" : "text-slate-300 hover:bg-slate-900/80 hover:text-white"}`}
             >
               <Award className="w-4 h-4 text-inherit" />
               Cuaderno de Progreso
@@ -1859,7 +2001,7 @@ FIN_SI`);
             <button
               id="tab-btn-philo"
               onClick={() => setActiveTab("ayuda")}
-              className={`flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap lg:w-full font-display border border-transparent ${activeTab === "ayuda" ? "bg-amber-500 text-slate-950 shadow-md font-extrabold" : "text-slate-300 hover:bg-slate-900/80 hover:text-white"}`}
+              className={`flex items-center gap-3 px-3 py-2.5 md:px-4 md:py-3.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap lg:w-full font-display border border-transparent ${activeTab === "ayuda" ? "bg-amber-500 text-slate-950 shadow-md font-extrabold" : "text-slate-300 hover:bg-slate-900/80 hover:text-white"}`}
             >
               <HelpCircle className="w-4 h-4 text-inherit" />
               Filosofía y Pedagogía
@@ -1869,7 +2011,7 @@ FIN_SI`);
               <button
                 id="tab-btn-admin"
                 onClick={() => setActiveTab("admin")}
-                className={`flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap lg:w-full font-display border border-transparent ${activeTab === "admin" ? "bg-red-500 text-white shadow-md font-extrabold" : "text-red-400 hover:bg-red-955 hover:text-red-300"}`}
+                className={`flex items-center gap-3 px-3 py-2.5 md:px-4 md:py-3.5 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap lg:w-full font-display border border-transparent ${activeTab === "admin" ? "bg-red-500 text-white shadow-md font-extrabold" : "text-red-400 hover:bg-red-955 hover:text-red-300"}`}
               >
                 <Shield className="w-4 h-4 text-inherit animate-pulse" />
                 Administración
@@ -1905,7 +2047,7 @@ FIN_SI`);
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              <div className="flex sm:grid overflow-x-auto sm:overflow-x-visible pb-3 sm:pb-0 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 snap-x snap-mandatory scrollbar-none" id="universal-phase-navigator-row">
                 {curriculum.map((phase) => {
                   const isSelected = selectedPhaseId === phase.id;
                   
@@ -1955,7 +2097,7 @@ FIN_SI`);
                           setActiveTab("modulo");
                         }
                       }}
-                      className={`relative text-left p-4 rounded-2xl border transition-all duration-300 flex flex-col justify-between h-28 select-none group ${
+                      className={`snap-start flex-shrink-0 w-[240px] sm:w-auto relative text-left p-4 rounded-2xl border transition-all duration-300 flex flex-col justify-between h-28 select-none group ${
                         isSelected
                           ? "bg-slate-900/80 border-amber-500/60 shadow-[0_0_15px_rgba(245,158,11,0.1)] ring-1 ring-amber-500/20"
                           : "bg-slate-950/50 border-slate-900/85 hover:border-slate-800 hover:bg-slate-900/20"
@@ -2295,10 +2437,10 @@ FIN_SI`);
                 if (!lesson) return null;
 
                 return (
-                  <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
                     
                     {/* Texto explicativo (didáctica col 5) */}
-                    <div className="xl:col-span-5 glass-card rounded-3xl p-6 flex flex-col justify-between space-y-4">
+                    <div className="lg:col-span-5 glass-card rounded-3xl p-6 flex flex-col justify-between space-y-4">
                       <div className="space-y-3">
                         <span className="px-2.5 py-0.5 bg-amber-500/10 text-amber-400 text-[9px] font-extrabold uppercase tracking-wide rounded border border-amber-500/25">
                           Enfoque: {lesson.type === "concept" ? "Secuencia Conceptual" : lesson.type === "logic_exercise" ? "Reto de Flujo" : "Programación real"}
@@ -2330,7 +2472,7 @@ FIN_SI`);
                     </div>
 
                     {/* Editor Inteligente Interactivo (col 7) */}
-                    <div className="xl:col-span-7 flex flex-col gap-4">
+                    <div className="lg:col-span-7 flex flex-col gap-4">
                       <div className="glass-card rounded-3xl p-5 flex flex-col gap-4 flex-1">
                         <div className="flex items-center justify-between border-b border-slate-900 pb-3">
                           <span className="text-xs font-bold text-slate-350 flex items-center gap-1.5 font-mono">
@@ -2633,10 +2775,10 @@ FIN_SI`);
                       </p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
                       
                       {/* Instructions of challenge */}
-                      <div className="xl:col-span-5 space-y-4 flex flex-col justify-between">
+                      <div className="lg:col-span-5 space-y-4 flex flex-col justify-between">
                         <div className="p-5 bg-slate-950/65 rounded-2xl border border-slate-900 space-y-3">
                           <span className="text-xs font-bold text-amber-500 uppercase tracking-wider block flex items-center gap-1">
                             <FileText className="w-4 h-4 text-amber-550" />
@@ -2700,7 +2842,7 @@ FIN_SI`);
                       </div>
 
                       {/* Integrated mini code Editor challenge */}
-                      <div className="xl:col-span-7 space-y-3">
+                      <div className="lg:col-span-7 space-y-3">
                         <div className="bg-slate-950 p-4 rounded-2xl border border-slate-900 gap-3 flex flex-col">
                           <div className="flex justify-between items-center text-xs font-mono text-slate-400">
                             <span>{selectedPhaseId === "phase_2" ? "CALCULADORA_INTERACTIVA.PY" : selectedPhaseId === "phase_3" ? "SISTEMA_ORGANIZADOR.PY" : selectedPhaseId === "phase_4" ? "SISTEMA_BIBLIOTECA.PY" : "PROYECTO_INTEGRADOR_FINAL.PY"}</span>
