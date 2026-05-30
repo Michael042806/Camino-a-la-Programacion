@@ -1880,25 +1880,40 @@ FIN_SI`);
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {curriculum.map((phase) => {
                   const isSelected = selectedPhaseId === phase.id;
                   
                   // Phase status logic
                   const isP1 = phase.id === "phase_1";
                   const isP2 = phase.id === "phase_2";
+                  const isP3 = phase.id === "phase_3";
+                  const isP4 = phase.id === "phase_4";
+                  const isP5 = phase.id === "phase_5";
 
                   const isComp = isP1 
                     ? completedStepIds.includes("step_phase1_eval") 
                     : isP2 
                       ? completedStepIds.includes("step_phase2_project") 
-                      : completedStepIds.includes("step_phase3_project");
+                      : isP3
+                        ? completedStepIds.includes("step_phase3_project")
+                        : isP4
+                          ? completedStepIds.includes("step_phase4_project")
+                          : isP5
+                            ? completedStepIds.includes("step_phase5_project")
+                            : false;
 
                   const isUnl = isP1 
                     ? true 
                     : isP2 
                       ? completedStepIds.includes("step_phase1_eval") || isAdminMode
-                      : completedStepIds.includes("step_phase2_project") || isAdminMode;
+                      : isP3
+                        ? completedStepIds.includes("step_phase2_project") || isAdminMode
+                        : isP4
+                          ? completedStepIds.includes("step_phase3_project") || isAdminMode
+                          : isP5
+                            ? completedStepIds.includes("step_phase4_project") || isAdminMode
+                            : false;
 
                   // Counts
                   const lessonCount = phase.lessons.length;
@@ -1925,7 +1940,7 @@ FIN_SI`);
                       <div className="w-full space-y-1">
                         <div className="flex items-center justify-between w-full gap-1">
                           <span className={`text-[9px] font-black uppercase tracking-wider ${isSelected ? "text-amber-500" : "text-slate-400"}`}>
-                            {isP1 ? "FASE 1" : isP2 ? "FASE 2" : "FASE 3"}
+                            {isP1 ? "FASE 1" : isP2 ? "FASE 2" : isP3 ? "FASE 3" : isP4 ? "FASE 4" : isP5 ? "FASE 5" : ""}
                           </span>
                           
                           {/* Mini badges */}
@@ -2545,37 +2560,51 @@ FIN_SI`);
                 </div>
               )}
 
-              {/* PROJECT TEST WORKSPACE FOR FASE 2 & FASE 3 DISPLAY */}
-              {(selectedPhaseId === "phase_2" || selectedPhaseId === "phase_3") && (
+              {/* PROJECT TEST WORKSPACE FOR FASE 2, FASE 3, FASE 4 & FASE 5 DISPLAY */}
+              {(selectedPhaseId === "phase_2" || selectedPhaseId === "phase_3" || selectedPhaseId === "phase_4" || selectedPhaseId === "phase_5") && (
                 <div 
-                  id="project-test-panel"
-                  className={`glass-card rounded-3xl p-6 md:p-8 space-y-6 transition-all border ${
-                    (selectedPhaseId === "phase_2" ? completedStepIds.includes("step_phase2_module") : completedStepIds.includes("step_phase3_module"))
-                      ? "border-amber-500/20 bg-slate-900/25" 
-                      : "border-slate-900 opacity-60 bg-slate-950/20"
-                  }`}
+                   id="project-test-panel"
+                   className={`glass-card rounded-3xl p-6 md:p-8 space-y-6 transition-all border ${
+                     (selectedPhaseId === "phase_2" 
+                       ? completedStepIds.includes("step_phase2_module") 
+                       : selectedPhaseId === "phase_3"
+                         ? completedStepIds.includes("step_phase3_module")
+                         : selectedPhaseId === "phase_4"
+                           ? completedStepIds.includes("step_phase4_module")
+                           : completedStepIds.includes("step_phase5_module")
+                     )
+                       ? "border-amber-500/20 bg-slate-900/25" 
+                       : "border-slate-900 opacity-60 bg-slate-950/20"
+                   }`}
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-900 pb-4">
                     <div>
                       <span className="px-2.5 py-0.5 bg-amber-500/10 text-amber-400 text-[9px] font-black uppercase rounded border border-amber-500/20">
-                        Reto de Certificación Práctico • {selectedPhaseId === "phase_2" ? "Fase 2" : "Fase 3"}
+                        Reto de Certificación Práctico • {selectedPhaseId === "phase_2" ? "Fase 2" : selectedPhaseId === "phase_3" ? "Fase 3" : selectedPhaseId === "phase_4" ? "Fase 4" : "Fase 5"}
                       </span>
                       <h3 className="text-lg md:text-xl font-bold font-display text-white mt-1.5">
-                        {selectedPhaseId === "phase_2" ? "Desafío: Calculadora Básica Interactiva" : "Desafío: Sistema Personal de Organización"}
+                        {selectedPhaseId === "phase_2" ? "Desafío: Calculadora Básica Interactiva" : selectedPhaseId === "phase_3" ? "Desafío: Sistema Personal de Organización" : selectedPhaseId === "phase_4" ? "Desafío: Sistema de Biblioteca e Inventarios" : "Desafío Final: Integrador de APIs y Estructuras"}
                       </h3>
                     </div>
 
                     <span className="text-xs font-mono text-slate-450 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800">
-                      Requisito: Madurar la {selectedPhaseId === "phase_2" ? "Fase 2" : "Fase 3"}
+                      Requisito: Madurar la {selectedPhaseId === "phase_2" ? "Fase 2" : selectedPhaseId === "phase_3" ? "Fase 3" : selectedPhaseId === "phase_4" ? "Fase 4" : "Fase 5"}
                     </span>
                   </div>
 
-                  {!(selectedPhaseId === "phase_2" ? completedStepIds.includes("step_phase2_module") : completedStepIds.includes("step_phase3_module")) && !isAdminMode ? (
+                  {!(selectedPhaseId === "phase_2" 
+                      ? completedStepIds.includes("step_phase2_module") 
+                      : selectedPhaseId === "phase_3"
+                        ? completedStepIds.includes("step_phase3_module")
+                        : selectedPhaseId === "phase_4"
+                          ? completedStepIds.includes("step_phase4_module")
+                          : completedStepIds.includes("step_phase5_module")
+                    ) && !isAdminMode ? (
                     <div className="p-8 text-center space-y-3 bg-slate-950/50 rounded-2xl border border-slate-900">
                       <Lock className="w-10 h-10 text-slate-700 mx-auto" />
                       <h4 className="text-sm font-bold text-slate-400 uppercase">Reto Bloqueado temporalmente</h4>
                       <p className="text-xs text-slate-500 max-w-sm mx-auto font-light">
-                        Debes completar primero todas las lecciones del taller interactivo de la {selectedPhaseId === "phase_2" ? "Fase 2 (Primer Lenguaje)" : "Fase 3 (Resolver Problemas)"} para darte de alta en este desafío de certificación práctica.
+                        Debes completar primero todas las lecciones del taller interactivo de la {selectedPhaseId === "phase_2" ? "Fase 2 (Primer Lenguaje)" : selectedPhaseId === "phase_3" ? "Fase 3 (Resolver Problemas)" : selectedPhaseId === "phase_4" ? "Fase 4 (Proyectos Reales)" : "Fase 5 (Nivel Avanzado)"} para darte de alta en este desafío de certificación práctica.
                       </p>
                     </div>
                   ) : (
@@ -2595,7 +2624,11 @@ FIN_SI`);
                           <p className="text-xs leading-relaxed text-slate-450 italic font-mono bg-slate-900 p-2.5 rounded-lg border border-slate-800/50">
                             {selectedPhaseId === "phase_2" 
                               ? "Variables requeridas: operacion, num1, num2, resultado, error_detectado."
-                              : "Variables requeridas: consulta_tipo, conteo_items, estado_completado, total_estimado, limite_excedido, total_contactos, error_consulta."}
+                              : selectedPhaseId === "phase_3"
+                                ? "Variables requeridas: consulta_tipo, conteo_items, estado_completado, total_estimado, limite_excedido, total_contactos, error_consulta."
+                                : selectedPhaseId === "phase_4"
+                                  ? "Variables requeridas: libro_titulo, libro_autor, libro_disponible, archivo_ruta, datos_guardados, archivo_creado, git_inicializado, git_commit_mensaje, cambios_guardados, prueba_resultado, sistema_estable."
+                                  : "Variables requeridas: consulta_api, api_datos, datos_ordenados, archivo_guardado, git_commit_final, pruebas_calidad_ok, sistema_consolidado."}
                           </p>
                         </div>
 
@@ -2607,7 +2640,11 @@ FIN_SI`);
                               <p className="text-xs mt-0.5 text-slate-300 leading-relaxed font-light">
                                 {selectedPhaseId === "phase_2"
                                   ? `¡Excelente desarrollo de la Calculadora, ${studentName || "Alberto"}! Lograste procesar y validar las operaciones aritméticas en Python de forma impecable.`
-                                  : `¡Excelente desarrollo lógico, ${studentName || "Alberto"}! Lograste resolver el desafío del Sistema Personal de Organización con éxito absoluto.`}
+                                  : selectedPhaseId === "phase_3"
+                                    ? `¡Excelente desarrollo lógico, ${studentName || "Alberto"}! Lograste resolver el desafío del Sistema Personal de Organización con éxito absoluto.`
+                                    : selectedPhaseId === "phase_4"
+                                      ? `¡Excelente diseño arquitectónico, ${studentName || "Alberto"}! Estructuraste el Sistema de Biblioteca e Inventarios con persistencia de disco, versionado Git y robustez de pruebas automáticas.`
+                                      : `¡Felicitaciones, ${studentName || "Alberto"}! Lograste consolidar el proyecto de nivel avanzado de forma impecable, consumiendo APIs, organizando estructuras, versionando en Git y aplicando pruebas de calidad.`}
                               </p>
                               
                               <button
@@ -2616,7 +2653,7 @@ FIN_SI`);
                                   const currentProjectStep = pathSteps.find(s => s.phaseId === selectedPhaseId && s.type === "phase_project");
                                   if (currentProjectStep) {
                                     const phase = curriculum.find(p => p.id === selectedPhaseId);
-                                    handleCompleteProject(currentProjectStep.id, phase?.badgeName || "Placa Profesional Python");
+                                    handleCompleteProject(currentProjectStep.id, phase?.badgeName || "Placa de Maestro de Tecnologías");
                                   }
                                 }}
                                 className="mt-3 px-4 py-2 bg-emerald-500 hover:bg-emerald-450 text-slate-950 text-xs font-black rounded-xl transition flex items-center gap-1.5 font-display"
@@ -2641,7 +2678,7 @@ FIN_SI`);
                       <div className="xl:col-span-7 space-y-3">
                         <div className="bg-slate-950 p-4 rounded-2xl border border-slate-900 gap-3 flex flex-col">
                           <div className="flex justify-between items-center text-xs font-mono text-slate-400">
-                            <span>{selectedPhaseId === "phase_2" ? "CALCULADORA_INTERACTIVA.PY" : "SISTEMA_ORGANIZADOR.PY"}</span>
+                            <span>{selectedPhaseId === "phase_2" ? "CALCULADORA_INTERACTIVA.PY" : selectedPhaseId === "phase_3" ? "SISTEMA_ORGANIZADOR.PY" : selectedPhaseId === "phase_4" ? "SISTEMA_BIBLIOTECA.PY" : "PROYECTO_INTEGRADOR_FINAL.PY"}</span>
                             
                             <button
                               id="run-project-evalution-btn"
@@ -2724,7 +2761,7 @@ FIN_SI`);
                   <div className="bg-slate-950 p-4 rounded-2xl border border-slate-900">
                     <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">Insignias y Diplomas</span>
                     <p className="text-3xl font-extrabold text-amber-500 font-display mt-1">
-                      { (completedStepIds.includes("step_phase1_eval") ? 1 : 0) + (completedStepIds.includes("step_phase2_project") ? 1 : 0) + (completedStepIds.includes("step_finish") ? 1 : 0) }
+                      { (completedStepIds.includes("step_phase1_eval") ? 1 : 0) + (completedStepIds.includes("step_phase2_project") ? 1 : 0) + (completedStepIds.includes("step_phase3_project") ? 1 : 0) + (completedStepIds.includes("step_phase4_project") ? 1 : 0) + (completedStepIds.includes("step_phase5_project") ? 1 : 0) + (completedStepIds.includes("step_finish") ? 1 : 0) }
                     </p>
                   </div>
                   <div className="bg-slate-950 p-4 rounded-2xl border border-slate-900">
@@ -2825,7 +2862,7 @@ FIN_SI`);
                 <h3 className="text-lg font-bold text-white font-display">Insignias y Galardones Institucionales</h3>
                 <p className="text-xs text-slate-400 font-light leading-relaxed">Las insignias atestiguan tus logros técnicos. Saboréalas: representan horas de maduración intelectual analítica.</p>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                   
                   {/* Badge 1 */}
                   <div className={`p-5 rounded-2xl border flex flex-col items-center text-center space-y-3 ${
@@ -2868,6 +2905,32 @@ FIN_SI`);
 
                   {/* Badge 4 */}
                   <div className={`p-5 rounded-2xl border flex flex-col items-center text-center space-y-3 ${
+                    completedStepIds.includes("step_phase4_project") 
+                      ? "bg-slate-900/40 border-amber-500/25 cursor-pointer hover:border-amber-500/40 transition" 
+                      : "bg-slate-950/20 border-slate-900 opacity-40 select-none"
+                  }`}>
+                    <Trophy className={`w-12 h-12 ${completedStepIds.includes("step_phase4_project") ? "text-amber-500 animate-pulse-glow" : "text-slate-700"}`} />
+                    <div>
+                      <h4 className="text-sm font-bold text-white">Placa de Arquitecto de Software</h4>
+                      <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">Concedida tras culminar el sistema de biblioteca o inventarios de la Fase 4.</p>
+                    </div>
+                  </div>
+
+                  {/* Badge 5 */}
+                  <div className={`p-5 rounded-2xl border flex flex-col items-center text-center space-y-3 ${
+                    completedStepIds.includes("step_phase5_project") 
+                      ? "bg-slate-900/40 border-amber-500/25 cursor-pointer hover:border-amber-500/40 transition" 
+                      : "bg-slate-950/20 border-slate-900 opacity-40 select-none"
+                  }`}>
+                    <Trophy className={`w-12 h-12 ${completedStepIds.includes("step_phase5_project") ? "text-amber-500 animate-pulse-glow" : "text-slate-700"}`} />
+                    <div>
+                      <h4 className="text-sm font-bold text-white">Placa de Maestro de Tecnologías</h4>
+                      <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">Concedida tras culminar el proyecto final integrador avanzado de la Fase 5.</p>
+                    </div>
+                  </div>
+
+                  {/* Badge 6 */}
+                  <div className={`p-5 rounded-2xl border flex flex-col items-center text-center space-y-3 ${
                     completedStepIds.includes("step_finish") 
                       ? "bg-slate-900/40 border-amber-500/25 cursor-pointer hover:border-amber-500/40 transition" 
                       : "bg-slate-950/20 border-slate-900 opacity-40 select-none"
@@ -2875,7 +2938,7 @@ FIN_SI`);
                     <Trophy className={`w-12 h-12 ${completedStepIds.includes("step_finish") ? "text-amber-500 animate-pulse-glow" : "text-slate-700"}`} />
                     <div>
                       <h4 className="text-sm font-bold text-white">Laurel de Graduación</h4>
-                      <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">Felicidades, has completado todas las paradas teóricas del camino para adultos.</p>
+                      <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">Felicidades, has completado todas las paradas teóricas y pragmáticas para graduarte.</p>
                     </div>
                   </div>
 

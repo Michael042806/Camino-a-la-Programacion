@@ -440,6 +440,234 @@ FIN_SI`,
         explanationOfGoal: "Coloca el intento_usuario idéntico al numero_secreto para simular una victoria lógica perfecta en tu depurador."
       }
     ]
+  },
+  {
+    id: "phase_4",
+    title: "Fase 4: Proyectos Reales",
+    subtitle: "Construir programas más útiles y completos",
+    description: "Aprenderás a diseñar y estructurar de manera organizada sistemas del mundo real. Abordaremos la programación orientada a objetos (clases) de forma intuitiva, almacenamiento en archivos locales, versionado con Git y simulación de pruebas automáticas para consagrarte como desarrollador sólido.",
+    badgeName: "Placa de Arquitecto de Software",
+    suggestedDuration: "4 semanas",
+    explanationOfPhase: "Abordar la programación orientada a objetos, organización en archivos, pruebas lógicas automatizadas y el uso de control de versiones con Git.",
+    temas: [
+      "Programación orientada a objetos",
+      "Clases y objetos",
+      "Archivos",
+      "Git",
+      "Pruebas",
+      "Bases de datos básicas"
+    ],
+    practices: [
+      "Sistema de biblioteca.",
+      "Inventario simple.",
+      "Registro de clientes.",
+      "Guardar datos en archivos.",
+      "Probar funciones automáticamente."
+    ],
+    stepByStepGuide: [
+      "Paso 1: definir entidades del sistema.",
+      "Paso 2: convertirlas en clases o estructuras.",
+      "Paso 3: diseñar operaciones del programa.",
+      "Paso 4: implementar una función a la vez.",
+      "Paso 5: probar cada módulo.",
+      "Paso 6: guardar cambios con Git.",
+      "Paso 7: documentar el proyecto."
+    ],
+    evaluationCriteria: [
+      "Crear un proyecto funcional con varias partes.",
+      "Explicar por qué se usó esa estructura.",
+      "Guardar y versionar cambios con Git."
+    ],
+    phaseProjectDescription: "“Sistema de biblioteca o inventario” con registros, búsqueda, almacenamiento básico y versionado lógico.",
+    objectives: [
+      "Modelar clases, atributos y métodos como moldes de entidades reales",
+      "Persistir información leyendo y guardando datos en archivos persistentes",
+      "Estructurar un repositorio y versionar cambios con Git",
+      "Configurar y comprobar pruebas de calidad automáticas"
+    ],
+    challengeTitle: "Sistema de Biblioteca e Inventarios",
+    challengeDescription: "Desarrolla el núcleo de control de un sistema de biblioteca o inventario integrado, gestionando registros, búsquedas dinámicas, almacenamiento y control de calidad.",
+    lessons: [
+      {
+        id: "l4_poo",
+        title: "Lección 4.1: Clases y Objetos (POO)",
+        subtitle: "Prácticas 1, 2 & 3: Entidades lógicas del mundo real",
+        type: "concept",
+        content: `La Programación Orientada a Objetos (POO) te permite agrupar datos de un elemento y las operaciones que puedes hacer sobre él dentro de un solo molde llamado "Clase". A partir de esa plantilla, puedes crear "Objetos" individuales.
+        
+Para una biblioteca, creamos la plantilla 'Libro', que tendrá datos específicos como título y disponibilidad. Cada ejemplar que llegue a nuestro sistema será un objeto real modelado virtualmente en memoria.`,
+        codeSnippet: `libro_titulo = "Don Quijote"
+libro_autor = "Cervantes"
+libro_disponible = "si"
+print("Libro registrado en biblioteca:")
+print(libro_titulo)`,
+        expectedOutput: "Libro registrado en biblioteca:\nDon Quijote",
+        expectedVariables: { libro_titulo: "Don Quijote", libro_autor: "Cervantes", libro_disponible: "si" },
+        explanationOfGoal: "Establece el libro_titulo en 'Don Quijote' para asimilar el modelado básico del primer ejemplar de nuestra biblioteca."
+      },
+      {
+        id: "l4_archivos",
+        title: "Lección 4.2: Guardar Datos en Archivos",
+        subtitle: "Práctica 4: Persistencia sin bases de datos complejas",
+        type: "concept",
+        content: `Cuando apagamos la computadora, la memoria RAM se borra por completo. Para guardar de forma permanente nuestros registros, debemos escribir las variables lógicas en archivos de texto persistentes.
+        
+Aprenderás a abrir archivos, insertar registros estructurados del inventario y después volver a leerlos de forma automatizada.`,
+        codeSnippet: `archivo_ruta = "datos_biblioteca.txt"
+datos_guardados = "Don Quijote;Cervantes;1605"
+archivo_creado = verdadero
+print("Guardando datos en archivo:")
+print(datos_guardados)`,
+        expectedOutput: "Guardando datos en archivo:\nDon Quijote;Cervantes;1605",
+        expectedVariables: { archivo_ruta: "datos_biblioteca.txt", datos_guardados: "Don Quijote;Cervantes;1605", archivo_creado: "verdadero" },
+        explanationOfGoal: "Asigna la cadena 'Don Quijote;Cervantes;1605' a datos_guardados para emular la escritura óptima en el disco."
+      },
+      {
+        id: "l4_git",
+        title: "Lección 4.3: Versionar con Git",
+        subtitle: "Asegura y retrocede tu progreso con commits",
+        type: "concept",
+        content: `Git es un sistema de control de versiones. Es como una máquina del tiempo para tu código: toma 'instantáneas' (commits) de tu proyecto de manera que siempre puedas recuperar un estado anterior si cometes un error.
+        
+Organiza y guarda tu historial de desarrollo agregando notas lógicas explicativas a cada cambio registrado.`,
+        codeSnippet: `git_inicializado = verdadero
+git_commit_mensaje = "Primer registro del inventario"
+cambios_guardados = verdadero
+print("Git estado del commit:")
+print(git_commit_mensaje)`,
+        expectedOutput: "Git estado del commit:\nPrimer registro del inventario",
+        expectedVariables: { git_inicializado: "verdadero", git_commit_mensaje: "Primer registro del inventario", cambios_guardados: "verdadero" },
+        explanationOfGoal: "Activa el versionado estableciendo git_commit_mensaje con 'Primer registro del inventario'."
+      },
+      {
+        id: "l4_pruebas",
+        title: "Lección 4.4: Pruebas Automáticas de Calidad",
+        subtitle: "Práctica 5: Tu primer código que prueba código",
+        type: "concept",
+        content: `Las pruebas automáticas (o test unitarios) son fragmentos de software diseñados exclusivamente para autoverificar que el resto del programa responde tal como es esperado.
+        
+Al correr las pruebas en milisegundos, erradicamos la necesidad de validar a mano cada pantalla. Si un cambio reciente altera la lógica de búsqueda, tu test unitario parpadeará en rojo enseguida informándote asertivamente.`,
+        codeSnippet: `prueba_nombre_ingresado = "Don Quijote"
+prueba_resultado = "aprobada"
+sistema_stable = verdadero
+print("Estado de pruebas automaticas:")
+print(prueba_resultado)`,
+        expectedOutput: "Estado de pruebas automaticas:\naprobada",
+        expectedVariables: { prueba_nombre_ingresado: "Don Quijote", prueba_resultado: "aprobada", sistema_stable: "verdadero" },
+        explanationOfGoal: "Asigna 'aprobada' a prueba_resultado para certificar la aserción de calidad de tu módulo interactivo."
+      }
+    ]
+  },
+  {
+    id: "phase_5",
+    title: "Fase 5: Nivel Avanzado",
+    subtitle: "Acercar al usuario al trabajo real de desarrollo",
+    description: "Dominarás las estructuras de datos complejas, los algoritmos de búsqueda y ordenamiento estructurado, la integración con servicios externos mediante APIs, automatización de tareas del sistema y aserciones completas de refactorización.",
+    badgeName: "Placa de Maestro de Tecnologías",
+    suggestedDuration: "4 semanas",
+    explanationOfPhase: "Abordar estructuras de datos avanzadas, ordenamiento interactivo, consultas a APIs web, optimización de velocidad de código (búsquedas) y automatización informática.",
+    temas: [
+      "Estructuras de datos",
+      "Algoritmos de búsqueda y ordenamiento",
+      "APIs",
+      "Automatización",
+      "Buenas prácticas",
+      "Refactorización",
+      "Lectura de documentación"
+    ],
+    practices: [
+      "Consumir una API.",
+      "Ordenar datos.",
+      "Buscar elementos eficientemente.",
+      "Automatizar una tarea útil.",
+      "Mejorar un proyecto anterior."
+    ],
+    stepByStepGuide: [
+      "Paso 1: entender el problema avanzado.",
+      "Paso 2: dividirlo en componentes.",
+      "Paso 3: elegir estructuras y herramientas.",
+      "Paso 4: implementar por partes.",
+      "Paso 5: probar y comparar resultados.",
+      "Paso 6: optimizar.",
+      "Paso 7: documentar la solución."
+    ],
+    evaluationCriteria: [
+      "Construir un proyecto final completo.",
+      "Documentar el código.",
+      "Hacer pruebas.",
+      "Explicar decisiones técnicas."
+    ],
+    phaseProjectDescription: "“Proyecto Integrador Técnico” con integración de APIs externas, ordenación de colecciones de datos, persistencia simulada y aserción automática de calidad.",
+    objectives: [
+      "Ordenar colecciones de información de forma alfabética",
+      "Entender e implementar la consulta de APIs web externas",
+      "Escribir scripts automáticos para digitalizar tareas rutinarias",
+      "Refactorizar y documentar la arquitectura elegida para aprobación"
+    ],
+    challengeTitle: "APIs and Advanced Structures Integration Project",
+    challengeDescription: "Construye el núcleo integrador definitivo que consuma datos externos de una API simulada, los clasifique u ordene en memoria, persista la respuesta a un archivo, git-commite el reporte de control, y verifique su calidad con aserciones lógicas.",
+    lessons: [
+      {
+        id: "l5_estructuras",
+        title: "Lección 5.1: Estructuras Avanzadas & Ordenamiento",
+        subtitle: "Prácticas 2 & 3: Ordenar colecciones y búsquedas rápidas",
+        type: "concept",
+        content: `A medida que tus proyectos almacenan miles de registros, necesitas estructuras optimizadas para encontrar información al instante. Aprendemos a clasificar y ordenar listas en orden alfabético de manera predecible.`,
+        codeSnippet: `datos_ordenados = "Manzana;Naranja;Platano"
+busqueda_eficiente = "encontrado"
+registros_totales = 3
+print("Clasificacion completada:")
+print(datos_ordenados)`,
+        expectedOutput: "Clasificacion completada:\nManzana;Naranja;Platano",
+        expectedVariables: { datos_ordenados: "Manzana;Naranja;Platano", busqueda_eficiente: "encontrado", registros_totales: 3 },
+        explanationOfGoal: "Provee la cadena clasificada 'Manzana;Naranja;Platano' en datos_ordenados para asimilar el algoritmo básico de orden en listas."
+      },
+      {
+        id: "l5_api",
+        title: "Lección 5.2: APIs e Integraciones Web",
+        subtitle: "Práctica 1: Consumir servicios de información externos",
+        type: "concept",
+        content: `Una API (Interfaz de Programación de Aplicaciones) conecta tu software con el mundo. Permite jalar información viva (el clima de hoy, tipos de cambio o noticias) directamente al interior de tus rutinas sin tener que crear una estación meteorológica física.`,
+        codeSnippet: `api_url = "https://api.clima.org/bogota"
+api_respuesta_status = 200
+datos_api_recibidos = "temperatura:18"
+print("HTTP Status de la API:")
+print(api_respuesta_status)`,
+        expectedOutput: "HTTP Status de la API:\n200",
+        expectedVariables: { api_url: "https://api.clima.org/bogota", api_respuesta_status: 200, datos_api_recibidos: "temperatura:18" },
+        explanationOfGoal: "Fija api_respuesta_status en 200 y datos_api_recibidos con 'temperatura:18' para emular el consumo óptimo del clima."
+      },
+      {
+        id: "l5_automatizacion",
+        title: "Lección 5.3: Automatizar Tareas Útiles",
+        subtitle: "Práctica 4: Escribir scripts repetitivos en segundo plano",
+        type: "concept",
+        content: `La automatización libera tu tiempo valioso delegando acciones manuales y aburridas a un script que se ejecuta periódicamente de forma secreta: respaldar archivos de datos, mandar alertas post-evaluación o procesar reportes en minutos.`,
+        codeSnippet: `tarea_automatizar = "respaldo_diario"
+ejecucion_correcta = "completada"
+archivos_comprimidos = 15
+print("Estado de automatizacion:")
+print(ejecucion_correcta)`,
+        expectedOutput: "Estado de automatizacion:\ncompletada",
+        expectedVariables: { tarea_automatizar: "respaldo_diario", ejecucion_correcta: "completada", archivos_comprimidos: 15 },
+        explanationOfGoal: "Establece ejecucion_correcta en 'completada' para convalidar la exitosa finalización de tu primer script de fondo."
+      },
+      {
+        id: "l5_buenas_practicas",
+        title: "Lección 5.4: Refactorización y Documentación",
+        subtitle: "Práctica 5: Mejorar la calidad de tu código y leer documentos",
+        type: "concept",
+        content: `La refactorización consiste en reorganizar el interior de tu código para que sea más legible y eficiente, sin cambiar lo que hace externamente. Al documentar tu software y leer manuales de referencia te aseguras de que el equipo mantenga la estabilidad.`,
+        codeSnippet: `proyecto_refactorizado = "mejorado"
+test_cobertura_porcentaje = 100
+documentacion_completada = "lista"
+print("Estatus de Refactorizacion:")
+print(documentacion_completada)`,
+        expectedOutput: "Estatus de Refactorizacion:\nlista",
+        expectedVariables: { proyecto_refactorizado: "mejorado", test_cobertura_porcentaje: 100, documentacion_completada: "lista" },
+        explanationOfGoal: "Configura documentacion_completada como 'lista' para simular un proceso de maduración técnica certificado."
+      }
+    ]
   }
 ];
 
@@ -576,7 +804,7 @@ FIN_SI`,
     whatYouWillLearn: "Estructuras asociativas complejas, condicionales anidados lógicos, y reutilización de flujos analíticos.",
     practiceToRealize: "Desarrollar un código en el editor que reciba un selector de consulta y proyecte el estado de compras, el total de gastos o la información del contacto.",
     evaluationCondition: "Codificar el sistema organizador hasta validar con éxito en la consola de control interactivo.",
-    whatItUnlocks: "Recepción de la distinción Laurel de Algoritmia Avanzada y Estación de Graduación.",
+    whatItUnlocks: "Insignia de Laurel de Algoritmia Avanzada y acceso a la Fase 4 (Proyectos Reales).",
     projectTemplate: {
       instructions: "Modifica el código de tu Sistema de Organización para evaluar el valor de la variable 'consulta_tipo'. Si es 'compras', establece 'conteo_items = 5' y registra 'estado_completado = verdadero'. Si es 'gastos', establece 'total_estimado = 280' y 'limite_excedido = falso'. Si es 'contactos', establece 'total_contactos = 12'. Si es cualquier otra opción, marca 'error_consulta = verdadero'. ¡Presiona 'Validar Lógica' para convalidar tus avances!",
       starterCode: `// Sistema personal de organización (compras, gastos y contactos)
@@ -608,6 +836,84 @@ SINO
   FIN_SI
 FIN_SI`,
       solutionKeywords: ["conteo_items", "total_estimado", "total_contactos", "error_consulta"]
+    }
+  },
+  {
+    id: "step_phase4_module",
+    label: "Fase 4: Taller de Proyectos Reales",
+    type: "phase_module",
+    phaseId: "phase_4",
+    description: "Aprende de manera asertiva la Programación Orientada a Objetos, almacenamiento persistente en archivos, versionado básico con Git y diseño de pruebas automáticas.",
+    whatYouWillLearn: "Crear clases e instancias, persistencia en archivos planos, comandos git commit y diseño de aserciones de pruebas de calidad.",
+    practiceToRealize: "Completar satisfactoriamente las 4 lecciones interactivas de simulación del taller sobre POO, archivos, Git y calidad.",
+    evaluationCondition: "Completar la lección interactiva de Clases y Objetos de la Fase 4.",
+    whatItUnlocks: "Desafío del Proyecto de la Fase 4 (Sistema de Biblioteca e Inventarios)."
+  },
+  {
+    id: "step_phase4_project",
+    label: "Proyecto: Sistema de Biblioteca o Inventarios",
+    type: "phase_project",
+    phaseId: "phase_4",
+    description: "Programa un sistema integrado para gestionar una biblioteca o inventario utilizando principios de POO, persistencia local y control de versiones Git.",
+    whatYouWillLearn: "Modelar clases, almacenamiento de texto, commits lógicos de Git, y diseño de validaciones de estabilidad automáticas.",
+    practiceToRealize: "Desarrollar un script estable en el editor que evalúe y consolide datos, versión, y calidad en el sistema.",
+    evaluationCondition: "Codificar el validador interactivo de biblioteca hasta validar con éxito en la consola de control.",
+    whatItUnlocks: "Fase 5: Nivel Avanzado y Taller Especializado.",
+    projectTemplate: {
+      instructions: "Modifica o ejecuta el script en el editor para registrar y convalidar tu biblioteca lógica. Debes declarar libro_titulo, libro_autor, libro_disponible, archivo_ruta, datos_guardados, archivo_creado, git_inicializado, git_commit_mensaje, cambios_guardados, prueba_resultado, y sistema_estable. Presiona 'Validar Lógica' para convalidar tus avances.",
+      starterCode: `// Sistema de Biblioteca o Inventarios
+libro_titulo = "Don Quijote"
+libro_autor = "Cervantes"
+libro_disponible = "si"
+archivo_ruta = "datos_biblioteca.txt"
+datos_guardados = "Don Quijote;Cervantes;1605"
+archivo_creado = "verdadero"
+git_inicializado = "verdadero"
+git_commit_mensaje = "Primer registro del inventario"
+cambios_guardados = "verdadero"
+prueba_resultado = "aprobada"
+sistema_estable = "verdadero"
+
+Log "Consola del Sistema de Biblioteca:"
+Log libro_titulo`,
+      solutionKeywords: ["libro_titulo", "libro_autor", "libro_disponible", "archivo_ruta", "datos_guardados", "archivo_creado", "git_inicializado", "git_commit_mensaje", "cambios_guardados", "prueba_resultado", "sistema_estable"]
+    }
+  },
+  {
+    id: "step_phase5_module",
+    label: "Fase 5: Taller de Nivel Avanzado",
+    type: "phase_module",
+    phaseId: "phase_5",
+    description: "Estudiar la secuencia de lecciones de nivel avanzado: estructuras de datos, ordenamiento de listas, consumo de APIs web, scripts de automatización y refactorización continua.",
+    whatYouWillLearn: "Análisis de APIs web, estructuras complejas (listas ordenadas), optimización de rendimiento de búsqueda y scripts automáticos de fondo.",
+    practiceToRealize: "Ejecutar y validar las 4 lecciones interactivas de simulación del taller avanzado.",
+    evaluationCondition: "Completar la lección interactiva de Estructuras Avanzadas de la Fase 5.",
+    whatItUnlocks: "Liberación y convalidación del Gran Proyecto de Certificación Final."
+  },
+  {
+    id: "step_phase5_project",
+    label: "Proyecto Final: Integrador Técnico de APIs y Estructuras",
+    type: "phase_project",
+    phaseId: "phase_5",
+    description: "Estructura el programa consolidado del curso que consuma APIs de clima simuladas, clasifique datos, guarde en archivo, registre con Git y autoevalúe estabilidad.",
+    whatYouWillLearn: "Sintesis e integración de lógica secuencial, funciones avanzadas, estructuras en memoria, persistencia en disco, versionado Git y aserciones de calidad.",
+    practiceToRealize: "Desarrollar un código integrador robusto en el editor de retos que valide satisfactoriamente todas las pruebas de aserción.",
+    evaluationCondition: "Codificar y homologar con éxito la lógica integrada en la consola de control.",
+    whatItUnlocks: "Insignia de Placa de Maestro de Tecnologías y Estación de Graduación.",
+    projectTemplate: {
+      instructions: "Modifica o ejecuta el script en el editor para realizar el proyecto integrador definitivo. Debes declarar consulta_api = 'exito', api_datos = 'bogota;18;lluvia', datos_ordenados = 'bogota;cali;medellin', archivo_guardado = 'datos_finales.txt', git_commit_final = 'Version definitiva del integrador', pruebas_calidad_ok = 'verdadero' y sistema_consolidado = 'verdadero'.",
+      starterCode: `// Proyecto Final Integrado: APIs, Estructuras, Archivos y Pruebas
+consulta_api = "exito"
+api_datos = "bogota;18;lluvia"
+datos_ordenados = "bogota;cali;medellin"
+archivo_guardado = "datos_finales.txt"
+git_commit_final = "Version definitiva del integrador"
+pruebas_calidad_ok = "verdadero"
+sistema_consolidado = "verdadero"
+
+Log "API Datos procesados exitosamente:"
+Log api_datos`,
+      solutionKeywords: ["consulta_api", "api_datos", "datos_ordenados", "archivo_guardado", "git_commit_final", "pruebas_calidad_ok", "sistema_consolidado"]
     }
   },
   {

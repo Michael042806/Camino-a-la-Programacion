@@ -1,6 +1,6 @@
 {
   "name": "Camino de Programación",
-  "description": "Plataforma de estudio para adultos mayores de 45 años, con enfoque en lógica primero y luego código real.",
+  "description": "Plataforma de estudio interactiva para adultos de más de 45 años con lógica primero, código real y nivel avanzado integrador.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
