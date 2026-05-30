@@ -1679,6 +1679,16 @@ FIN_SI`);
             </button>
 
             <button
+              id="header-unlock-all-btn"
+              onClick={handleAdminCompleteAll}
+              className="px-3.5 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500/10 to-amber-600/15 hover:from-amber-500/20 hover:to-amber-600/25 text-amber-400 hover:text-amber-300 border border-amber-500/20 hover:border-amber-500/45 transition-all flex items-center gap-1.5 active:scale-95 shadow-[0_0_15px_rgba(245,158,11,0.05)] hover:shadow-[0_0_20px_rgba(245,158,11,0.15)] font-display"
+              title="Desbloquear inmediatamente todos los módulos, fases y insignias al 100%"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+              Desbloquear Todo ⚡
+            </button>
+
+            <button
               id="reset-progress-btn"
               onClick={handleResetCourse}
               className="px-3.5 py-2 rounded-xl text-xs font-bold border border-slate-800 text-slate-400 hover:bg-slate-900 transition flex items-center gap-1.5"
@@ -1773,12 +1783,27 @@ FIN_SI`);
                       💻 Placa Python
                     </span>
                   )}
+                  {completedStepIds.includes("step_phase3_project") && (
+                    <span className="px-2 py-1 bg-amber-500/10 text-[9px] font-extrabold text-amber-400 rounded-md border border-amber-500/20 flex items-center gap-1 cursor-help" title="Concedida tras resolver exitosamente el proyecto del sistema personal de organización de la Fase 3">
+                      🌿 Laurel Algoritmia
+                    </span>
+                  )}
+                  {completedStepIds.includes("step_phase4_project") && (
+                    <span className="px-2 py-1 bg-amber-500/10 text-[9px] font-extrabold text-amber-400 rounded-md border border-amber-500/20 flex items-center gap-1 cursor-help" title="Concedida tras culminar el sistema de biblioteca o inventarios de la Fase 4">
+                      🏰 Placa Arquitecto
+                    </span>
+                  )}
+                  {completedStepIds.includes("step_phase5_project") && (
+                    <span className="px-2 py-1 bg-amber-500/10 text-[9px] font-extrabold text-amber-400 rounded-md border border-amber-500/20 flex items-center gap-1 cursor-help" title="Concedida tras culminar el proyecto final integrador avanzado de la Fase 5">
+                      🚀 Placa Maestro
+                    </span>
+                  )}
                   {completedStepIds.includes("step_finish") && (
                     <span className="px-2 py-1 bg-amber-500/10 text-[9px] font-extrabold text-amber-400 rounded-md border border-amber-500/20 flex items-center gap-1 cursor-help" title="Graduado general de competencias de programación">
                       🎓 Laurel Maestría
                     </span>
                   )}
-                  {completedStepIds.length <= 1 && (
+                  {completedStepIds.filter(id => ["step_phase1_eval", "step_phase2_project", "step_phase3_project", "step_phase4_project", "step_phase5_project", "step_finish"].includes(id)).length === 0 && (
                     <span className="text-[10px] text-slate-500 italic">Ninguna insignia aún. ¡Paso a paso!</span>
                   )}
                 </div>
@@ -1880,7 +1905,7 @@ FIN_SI`);
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                 {curriculum.map((phase) => {
                   const isSelected = selectedPhaseId === phase.id;
                   
@@ -2862,7 +2887,7 @@ FIN_SI`);
                 <h3 className="text-lg font-bold text-white font-display">Insignias y Galardones Institucionales</h3>
                 <p className="text-xs text-slate-400 font-light leading-relaxed">Las insignias atestiguan tus logros técnicos. Saboréalas: representan horas de maduración intelectual analítica.</p>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                   
                   {/* Badge 1 */}
                   <div className={`p-5 rounded-2xl border flex flex-col items-center text-center space-y-3 ${
