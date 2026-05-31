@@ -198,7 +198,8 @@ export default function App() {
     if (active?.toLowerCase() === "admin") {
       return true;
     }
-    return localStorage.getItem("adult_mentor_admin_mode") === "true";
+    const saved = localStorage.getItem("adult_mentor_admin_mode");
+    return saved === null ? true : saved !== "false";
   });
 
   const [pathSteps, setPathSteps] = useState<PathStep[]>(() => {
@@ -638,14 +639,32 @@ FIN_SI`);
 
       if (activeLesson.expectedVariables) {
         for (const [key, expectedVal] of Object.entries(activeLesson.expectedVariables)) {
-          // Compare as strings to tolerate true/false types
-          if (String(res.variables[key]).toLowerCase() !== String(expectedVal).toLowerCase()) {
+          // Compare flexibly stringifying both "verdadero"/"true" to true and "falso"/"false" to false
+          const normalize = (val: any) => {
+            if (val === undefined || val === null) return "";
+            const s = String(val).toLowerCase().trim();
+            if (s === "true" || s === "verdadero" || s === "1") return "true";
+            if (s === "false" || s === "falso" || s === "0") return "false";
+            return s;
+          };
+
+          if (normalize(res.variables[key]) !== normalize(expectedVal)) {
             goalSucceeded = false;
           }
         }
       }
 
       setLessonSuccess(goalSucceeded);
+
+      // If simulated with success, instantly mark this lesson as completed!
+      if (goalSucceeded) {
+        setCompletedLessonIds(prev => {
+          if (!prev.includes(activeLesson.id)) {
+            return [...prev, activeLesson.id];
+          }
+          return prev;
+        });
+      }
     } catch (e: any) {
       setLessonError(e.message || "Error al procesar la lógica de la lección.");
       setLessonSuccess(false);
@@ -653,6 +672,18 @@ FIN_SI`);
   };
 
   const handleCompleteActiveLesson = () => {
+    // Add current lesson to completed ones
+    const phase = curriculum.find(p => p.id === selectedPhaseId);
+    const activeLesson = phase?.lessons[selectedLessonIdx];
+    if (activeLesson) {
+      setCompletedLessonIds(prev => {
+        if (!prev.includes(activeLesson.id)) {
+          return [...prev, activeLesson.id];
+        }
+        return prev;
+      });
+    }
+
     // Check if there's a corresponding step in path for this phase
     const pathStep = pathSteps.find(s => s.phaseId === selectedPhaseId && s.type === "phase_module");
     if (!pathStep) return;
@@ -845,6 +876,8 @@ FIN_SI`);
     // Login
     localStorage.setItem("adult_mentor_current_user", newUser.username);
     setCurrentUser(newUser.username);
+    setIsAdminMode(true);
+    localStorage.setItem("adult_mentor_admin_mode", "true");
     setAuthError(null);
     setRegisterUsername("");
     setRegisterName("");
@@ -880,11 +913,9 @@ FIN_SI`);
     localStorage.setItem("adult_mentor_current_user", matchedUser.username);
     setCurrentUser(matchedUser.username);
 
-    // Dynamic Admin activation if account is 'admin'
-    if (matchedUser.username.toLowerCase() === "admin") {
-      setIsAdminMode(true);
-      localStorage.setItem("adult_mentor_admin_mode", "true");
-    }
+    // Activar modo creador/administración por defecto para habilitar total control de funciones
+    setIsAdminMode(true);
+    localStorage.setItem("adult_mentor_admin_mode", "true");
     
     // Load state
     const nameKey = `adult_mentor_name_${matchedUser.username}`;
@@ -2310,11 +2341,14 @@ FIN_SI`);
                       onChange={(e) => setSelectedLessonIdx(Number(e.target.value))}
                       className="bg-slate-900 text-white font-medium text-xs md:text-sm border border-slate-800 rounded-xl px-3 py-2 outline-none focus:border-amber-500/50"
                     >
-                      {curriculum.find(p => p.id === selectedPhaseId)?.lessons.map((lesson, idx) => (
-                        <option key={lesson.id} value={idx}>
-                          Capítulo {idx + 1}: {lesson.title.split(":")[1] || lesson.title}
-                        </option>
-                      ))}
+                      {curriculum.find(p => p.id === selectedPhaseId)?.lessons.map((lesson, idx) => {
+                        const isCompleted = completedLessonIds.includes(lesson.id);
+                        return (
+                          <option key={lesson.id} value={idx}>
+                            Capítulo {idx + 1}: {lesson.title.split(":")[1] || lesson.title}{isCompleted ? " (✅ Completado)" : ""}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
                 </div>
@@ -2469,6 +2503,33 @@ FIN_SI`);
                         <p className="text-xs text-slate-300 leading-relaxed font-light">{lesson.explanationOfGoal}</p>
                       </div>
 
+                      {/* Navegación rápida entre lecciones al final */}
+                      <div className="flex items-center justify-between pt-4 border-t border-slate-900/60 mt-2">
+                        <button
+                          id="btn-prev-lesson"
+                          disabled={selectedLessonIdx === 0}
+                          onClick={() => {
+                            setSelectedLessonIdx(prev => prev - 1);
+                          }}
+                          className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300 hover:bg-slate-850 hover:text-white disabled:opacity-30 disabled:pointer-events-none transition-all flex items-center gap-1"
+                        >
+                          ⬅️ Anterior
+                        </button>
+                        <span className="text-[11px] text-slate-400 font-bold font-mono">
+                          Fase {selectedPhaseId.replace("phase_", "")} • {selectedLessonIdx + 1} de {phase?.lessons.length || 0}
+                        </span>
+                        <button
+                          id="btn-next-lesson"
+                          disabled={!phase || selectedLessonIdx === phase.lessons.length - 1}
+                          onClick={() => {
+                            setSelectedLessonIdx(prev => prev + 1);
+                          }}
+                          className="px-3.5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-450 hover:to-amber-550 text-slate-950 transition-all font-display disabled:opacity-30 disabled:pointer-events-none flex items-center gap-1"
+                        >
+                          Siguiente ➡️
+                        </button>
+                      </div>
+
                     </div>
 
                     {/* Editor Inteligente Interactivo (col 7) */}
@@ -2517,14 +2578,28 @@ FIN_SI`);
                               <p className="text-xs font-bold uppercase tracking-wider">¡Éxito lúdico de simulación!</p>
                               <p className="text-xs mt-0.5 text-slate-300 font-light">Has obtenido los resultados exactos que el compilador esperaba para validar tu maduración teórica.</p>
                               
-                              <button
-                                id="achieve-station-btn"
-                                onClick={handleCompleteActiveLesson}
-                                className="mt-2.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-450 text-slate-950 text-xs font-black rounded-xl transition flex items-center gap-1.5 font-display"
-                              >
-                                Marcar Estación como Exitosa
-                                <ArrowRight className="w-3.5 h-3.5" />
-                              </button>
+                              <div className="flex flex-wrap items-center gap-2 mt-2.5">
+                                <button
+                                  id="achieve-station-btn"
+                                  onClick={handleCompleteActiveLesson}
+                                  className="px-4 py-2 bg-emerald-500 hover:bg-emerald-450 text-slate-950 text-xs font-black rounded-xl transition flex items-center gap-1.5 font-display shadow"
+                                >
+                                  Marcar Estación como Exitosa
+                                  <ArrowRight className="w-3.5 h-3.5" />
+                                </button>
+
+                                {phase && selectedLessonIdx < phase.lessons.length - 1 && (
+                                  <button
+                                    id="next-lesson-success-btn"
+                                    onClick={() => {
+                                      setSelectedLessonIdx(prev => prev + 1);
+                                    }}
+                                    className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-amber-400 border border-amber-500/20 text-xs font-bold rounded-xl transition flex items-center gap-1 font-display"
+                                  >
+                                    Avanzar a Siguiente Lección ➡️
+                                  </button>
+                                )}
+                              </div>
                             </div>
                           </div>
                         ) : (
